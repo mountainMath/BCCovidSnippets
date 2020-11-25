@@ -1,0 +1,62 @@
+---
+title: "Two Covid Canadas"
+author: "Jens von Bergmann"
+date: "25/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(CanCovidData)
+library(tidyverse)
+```
+
+
+```{r}
+pop_data <- cansim::get_cansim("17-10-0005") %>%
+  filter(REF_DATE==2020,`Age group`=="All ages",Sex=="Both sexes") %>%
+  select(Province=GEO,Population=VALUE)
+
+covid_data <- get_canada_official_provincial_data() %>%
+  mutate(Province=prname, shortProvince=cansim:::short_prov.en[prname])
+```
+
+```{r}
+plot_data <- covid_data %>% 
+  filter(Province!="Repatriated") %>%
+  select(Date,Province,shortProvince,Cases) %>%
+  complete(Date,Province) %>%
+  mutate(Cases=replace_na(Cases,0)) %>%
+  left_join(pop_data,by="Province") %>%
+  group_by(Province) %>%
+  arrange(Date) %>%
+  mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
+  mutate(type=ifelse(shortProvince %in% c("NL","NT","NS","YT","PE","NB"),"Atlantic bubble & Territories","Rest of Canada"))
+
+highlightProvinces <- c("ON","QC","AB","BC","MB","SK","NU")
+
+plot_data %>%
+  filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
+  ggplot(aes(x=Date,y=incidence,group=shortProvince)) +
+  geom_line(data=~filter(.,!(shortProvince %in% highlightProvinces)),
+            color="grey") +
+  geom_point(data=~filter(.,!(shortProvince %in% highlightProvinces),Date==max(Date)),
+            color="grey") +
+  ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% highlightProvinces),Date==max(Date)),
+            aes(label=shortProvince),nudge_x = 20,min.segment.length = 0,color="grey") +
+  geom_line(data=~filter(.,shortProvince %in% highlightProvinces),
+            aes(color=shortProvince)) +
+  geom_point(data=~filter(.,shortProvince %in% highlightProvinces,Date==max(Date)),
+            aes(color=shortProvince)) +
+  ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% highlightProvinces,Date==max(Date)),
+            aes(color=shortProvince,label=shortProvince),nudge_x = 20,min.segment.length = 0) +
+  scale_color_brewer(palette = "Dark2",guide=FALSE) +
+  facet_wrap("type",ncol=1,scales ="free_y") +
+  expand_limits(x=max(plot_data$Date)+7) +
+  theme_bw() +
+  scale_x_date(breaks="months",labels=function(d)strftime(d,"%b")) +
+  labs(title=paste0("7 day incidence for Canadian provinces (as of ",plot_data$Date %>% last,")"),
+       x=NULL,y="Cumulative 7 day cases per 100k population",
+       color=NULL,
+       caption="MountainMath, PHAC")
+```
