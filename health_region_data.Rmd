@@ -1,0 +1,343 @@
+---
+title: "Health Region Incidence"
+author: "Jens von Bergmann"
+date: "01/12/2020"
+output: html_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(CanCovidData)
+library(googlesheets4)
+library(mountainmathHelpers)
+library(sf)
+library(gganimate)
+```
+
+```{r}
+gs <- sheets_get("https://docs.google.com/spreadsheets/d/17lpuHBfq_G0HnbKwHZvD9CtRG5kcHiNUzSahFq7J-K0/edit#gid=0")
+#sheets_sheets(g)
+
+health_region_renames <- c(
+  "Northwest" ="North West",
+  "North Shore - Coast Garibaldi" = "North Shore/Coast Garibaldi",
+  "Thompson Cariboo Shuswap" = "Thompson/Cariboo",
+  "Kootenay Boundary" ="Kootenay-Boundary"
+)
+
+
+data <- sheets_read(gs,"datawrapper") %>%
+  rename(Region=`...1`)  %>%
+  #slice(seq(1,which(is.na(.data$Region)) %>% min -1)) %>%
+  mutate(Name=recode(Region,!!!health_region_renames))
+
+#data
+
+cd <- get_health_region_census_2016_data() %>%
+  filter(GEO_LEVEL==2,grepl("^59",`GEO_CODE (POR)`))
+
+cdp <- cd %>% filter(`DIM: Profile of Health Regions (2247)`=="Population, 2016") %>%
+  select(GEO_NAME,HR_UID=`GEO_CODE (POR)`,Total=`Dim: Sex (3): Member ID: [1]: Total - Sex`) %>%
+  mutate(Name=gsub(" Health Service Delivery Area","",GEO_NAME)) %>%
+  mutate(Total=as.integer(Total))
+
+date_from_time <- function(period_start){
+  period_month = substr(period_start,1,3)
+  period_day=str_extract(period_start,"\\d+")
+  period_start_string=paste0("2020-",period_month,"-",str_pad(period_day,2,pad="0"))
+  as.Date(period_start_string,format="%Y-%b-%d")
+}
+date_from_period <- function(p){
+  period_start=strsplit(p," - ") %>% map(first) %>% unlist
+  date_from_time(period_start) +13
+}
+
+
+
+hr_data <- sheets_read("https://docs.google.com/spreadsheets/d/1MAqfxwD6GVLA-S5xC3WcIHMqU9Cfe5nZ0145JTiANtw/edit#gid=1688823368",sheet="Sheet2") %>%
+  pivot_longer(-Region,names_to="DateTotal",values_to="Total") %>%
+  mutate(Name=recode(Region,!!!health_region_renames)) %>%
+  mutate(DateT=(date_from_time(DateTotal)) %>% as.character) %>%
+  select(Name,DateT,Total) %>%
+  pivot_wider(names_from=DateT,values_from=Total)
+
+#start_dates <- as.Date("2020-10-23") - seq(0,19)*7
+end_dates <- hr_data %>% 
+  select(-Name) %>% 
+  names() %>% 
+  as.Date() %>%
+  c(.,min(.) -seq(1,2)*7)
+
+periods <- end_dates %>% map(function(d)paste0(strftime(d-6,"%b %d")," to ",strftime(d,"%b %d"))) %>% unlist
+period_labels <- periods %>% rev
+
+
+d<-data %>%
+  select(-Region) %>%
+  pivot_longer(cols=-Name, names_to="Period",values_to="Count") %>%
+  mutate(Date=date_from_period(Period) %>% as.character() %>% paste0("W2 ",.)) %>%
+  select(-Period) %>%
+  pivot_wider(names_from=Date,values_from=Count) %>%
+  left_join(hr_data,by="Name") %>%
+  mutate(`2020-07-02`=`2020-07-16`-`W2 2020-07-16`,  # push bvack an extra two weeks using the two week maps
+         `2020-06-25`=`2020-07-09`-`W2 2020-07-09`) %>%
+  select_at(c("Name",end_dates %>% as.character())) %>%
+  pivot_longer(as.character(end_dates),names_to="End date",values_to="Count") %>%
+  #select(Name,`Start date`,Count) %>%
+  mutate(label=strftime(`End date`,"%b %d")) %>%
+  arrange(`End date`) %>%
+  mutate(label=factor(label,levels=.$label %>% unique)) %>%
+  left_join(cdp,by="Name") %>%
+  group_by(Name) %>%
+  mutate(ChangeR=Count-lag(Count,order_by = `End date`)) %>%
+  mutate(Change=pmax(0,ChangeR)) %>%
+  mutate(incidence=Change/Total*100000) %>%
+  mutate(stage=pretty_cut(incidence,c(-Inf,0,5,10,25,50,100,Inf)),ordered=TRUE) %>%
+  mutate(stage=fct_recode(stage,"0"="< 0")) %>%
+  group_by(label) %>%
+  arrange(Name) %>%
+  mutate(r=rank(incidence, ties.method= "first")) %>%
+  mutate(l=as.integer(label)) %>%
+  filter(label!="Jun 25") %>%
+  mutate(ll=period_labels[l]) %>%
+  mutate(Name=factor(Name,levels=ungroup(.) %>% filter(`End date`==max(`End date`)) %>% arrange(incidence) %>% pull(Name))) 
+
+stage_colours <- setNames(RColorBrewer::brewer.pal(d$stage %>% levels %>% length,"YlOrRd"),
+                          d$stage %>% levels)
+```
+
+
+## Heatmap
+```{r}
+ggplot(d,aes(x=`End date`,y=Name,fill=stage)) +
+  geom_tile() +
+  scale_fill_manual(values=c("0"="#ffffdd",stage_colours)) +
+  theme_dark() +
+  theme(axis.text.x = element_text(angle=90,hjust=1)) +
+  labs(title="COVID-19 7 day incidence",
+              caption  = "MountainMath, Data: BCCDC, scraped by @ty_olsen & a special 10yo",
+      x=NULL,y=NULL,fill="Cumulative 7 day cases\nper 100k population")
+```
+
+## Bar race
+
+```{r}
+staticplot = ggplot(d %>% mutate(rank=r,value=incidence), aes(x=rank, group = Name,
+                fill = stage, color = stage)) +
+  geom_tile(aes(y = value/2,
+                height = value,
+                width = 0.9), alpha = 0.8, color = NA) +
+  geom_text(aes(y = 0, label = paste(Name, " ")), vjust = 0.2, hjust = 1) +
+  #geom_text(aes(y=value,label = round(incidence), hjust=0)) +
+  coord_flip(clip = "off") +#, expand = FALSE) +
+  scale_y_continuous(labels = scales::comma, breaks=c(0,10,25,50,100)) +
+  scale_fill_manual(values=stage_colours,guide=FALSE) +
+  scale_colour_manual(values=stage_colours,guide=FALSE) +
+  guides(color = FALSE, fill = FALSE) +
+  #theme_dark() +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_text(color="white"),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        #axis.title.x=element_blank(),
+        axis.title.x=element_text(color="white"),
+        legend.position="none",
+        panel.background=element_rect(fill="#666666"),
+        #panel.border=element_rect(fill="#444444"),
+        panel.grid.major.y=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        #panel.grid.major.x = element_line( size=.1, color="grey" ),
+        panel.grid.minor.x = element_blank(),
+        plot.title=element_text(size=12, hjust=0.5, face="bold", colour="white"),#, vjust=-1),
+        #plot.subtitle=element_text(size=18, hjust=0.5, face="italic", color="grey"),
+        plot.caption =element_text(size=8, hjust=1, face="italic", color="white"),
+        plot.background=element_rect(fill="#666666"),
+        plot.margin = margin(2,2, 2, 4.3, "cm"))
+
+anim = staticplot + transition_states(l, transition_length = 4, state_length = 3, wrap=FALSE) +
+  #view_follow(fixed_x = TRUE)  +
+  labs(title = 'COVID-19 7 day incidence {period_labels[as.integer(closest_state)]}',
+       caption  = "MountainMath, Data: BCCDC, scraped by @ty_olsen & a special 10yo",
+       x=NULL,
+       y="Cumulative 7 day cases per 100k population")
+
+#anim
+
+animate(anim, 400, fps = 20,  width = 1200, height = 900, res = 150,
+        start_pause = 20, end_pause = 50, rewind = FALSE,
+        renderer = gifski_renderer("~/Desktop/hr_covid.gif"))
+```
+
+
+## Bar static
+
+```{r}
+staticplot <- d %>% 
+  mutate(rank=as.integer(Name),value=incidence) %>%
+  ggplot(aes(x=rank, group = Name,
+                fill = stage, color = stage)) +
+  geom_tile(aes(y = value/2,
+                height = value,
+                width = 0.9), alpha = 0.8, color = NA) +
+  geom_text(aes(y = 0, label = paste(Name, " ")), vjust = 0.2, hjust = 1) +
+  #geom_text(aes(y=value,label = round(incidence), hjust=0)) +
+  coord_flip(clip = "off") +#, expand = FALSE) +
+  scale_y_continuous(labels = scales::comma, breaks=c(0,10,25,50,100)) +
+  scale_fill_manual(values=stage_colours,guide=FALSE) +
+  scale_colour_manual(values=stage_colours,guide=FALSE) +
+  guides(color = FALSE, fill = FALSE) +
+  #theme_dark() +
+  theme(axis.line=element_blank(),
+        axis.text.x=element_text(color="white"),
+        axis.text.y=element_blank(),
+        axis.ticks=element_blank(),
+        #axis.title.x=element_blank(),
+        axis.title.x=element_text(color="white"),
+        legend.position="none",
+        panel.background=element_rect(fill="#666666"),
+        #panel.border=element_rect(fill="#444444"),
+        panel.grid.major.y=element_blank(),
+        panel.grid.minor.y=element_blank(),
+        #panel.grid.major.x = element_line( size=.1, color="grey" ),
+        panel.grid.minor.x = element_blank(),
+        plot.title=element_text(size=12, hjust=0.5, face="bold", colour="white"),#, vjust=-1),
+        #plot.subtitle=element_text(size=18, hjust=0.5, face="italic", color="grey"),
+        plot.caption =element_text(size=8, hjust=1, face="italic", color="white"),
+        plot.background=element_rect(fill="#666666"),
+        plot.margin = margin(2,2, 2, 4.3, "cm"))
+
+anim = staticplot + transition_states(l, transition_length = 4, state_length = 3, wrap=FALSE) +
+  #view_follow(fixed_x = TRUE)  +
+  labs(title = 'COVID-19 7 day incidence {period_labels[as.integer(closest_state)]}',
+       caption  = "MountainMath, Data: BCCDC, scraped by @ty_olsen & a special 10yo",
+       x=NULL,
+       y="Cumulative 7 day cases per 100k population")
+
+#anim
+
+animate(anim, 400, fps = 20,  width = 1200, height = 900, res = 150,
+        start_pause = 20, end_pause = 50, rewind = FALSE,
+        renderer = gifski_renderer("~/Desktop/hr_covid2.gif"))
+```
+## Map
+
+```{r}
+geos <- get_health_region_geographies_2018() %>%
+  select(-Name) %>%
+  inner_join(d,by="HR_UID") %>%
+  mutate(label=paste0(Name,"\n",round(incidence),"/100k"))
+
+geos_van <- geos %>% 
+  st_transform(4326) %>%
+  st_intersection(metro_van_bbox() %>% st_as_sfc() %>% st_buffer(0.1))
+
+geos_van_label <- geos_van %>% 
+  st_intersection(metro_van_bbox() %>% st_as_sfc() %>% st_buffer(-0.05)) %>%
+  st_point_on_surface()
+
+mr <- metro_van_vector_tiles()$roads %>% rmapzen::as_sf() %>% filter(!grepl("ferry",kind)) %>% st_collection_extract("LINE")
+mw <- metro_van_vector_tiles()$water %>% rmapzen::as_sf() %>% st_collection_extract("POLYGON")
+
+#anim <- ggplot(geos %>% st_transform(4236) %>% filter(HR_UID %in% (geos_van$HR_UID %>% unique))) +
+g <- ggplot(geos_van %>% st_transform(4326)) +
+  geom_sf(aes(fill=stage,group=Name)) +
+  #scale_fill_viridis_c(option = "magma") +
+  scale_fill_manual(values=stage_colours) +
+  geom_sf(data=mw,fill="lightblue",size=0.1) +
+  geom_sf(data=mr,color="black",size=0.1) +
+  #geom_sf_label(data=geos_van_label,aes(label=label),alpha=0.8) +
+  coord_bbox(metro_van_bbox()) +
+  labs(title="7 day COVID-19 case incidence per 100k population",
+        subtitle="({period_labels[as.integer(closest_state)]})",
+       caption  = "MountainMath, Data: BCCDC, scraped by @ty_olsen & a special 10yo",
+       fill="cumulative 7 day\nnew cases per\n100k population",x=NULL,y=NULL)
+  
+
+
+animate(g + transition_states(l, transition_length = 4, state_length = 3, wrap=FALSE),
+        350, fps = 20,  width = 950, height = 650, res = 150,
+        start_pause = 10, end_pause = 40, rewind = FALSE,
+        renderer = gifski_renderer("~/Desktop/hr_covid_map.gif"))
+
+```
+
+
+## Validation
+```{r}
+cases <- get_british_columbia_case_data() %>%
+  count(Date=`Reported Date`,`Health Authority`,name="Cases")
+
+ha_lookup <- c("591"="Interior","593"="Vancouver Coastal","594"="Vancouver Island",
+               "595"="Northern","592"="Fraser")
+
+cases2 <- get_canada_covid_working_group_cases() %>%
+  filter(province=="BC") %>%
+  count(`Health Authority`=health_region,Date,name="Cases") %>%
+  mutate(`Health Authority`=recode(`Health Authority`,"Island"="Vancouver Island"))
+
+
+map_data <- hr_data %>%
+  left_join(cdp %>% select(HR_UID,Population=Total,Name),by="Name") %>%
+  mutate(HA_UID=substr(HR_UID,1,3)) %>%
+  mutate(`Health Authority`=ha_lookup[HA_UID]) %>%
+  select(-Name,-HR_UID,-HA_UID) %>%
+  group_by(`Health Authority`) %>%
+  summarise_all(sum) %>%
+  pivot_longer(-one_of("Health Authority"),names_to="Date",values_to="Map count") 
+  
+  
+
+
+compare_data <- end_dates %>% 
+  lapply(function(date){
+  map_data %>% filter(Date==date) %>%
+    left_join(cases %>% 
+                filter(Date<date) %>% 
+                group_by(`Health Authority`) %>% 
+                summarize(Cases=sum(Cases),.groups="drop"),
+              by="Health Authority") %>%
+      left_join(cases2 %>% 
+                  filter(Date<=date) %>% 
+                group_by(`Health Authority`) %>% 
+                summarize(Cases2=sum(Cases),.groups="drop"),by="Health Authority")
+}) %>%
+  bind_rows() %>%
+  mutate(diff=Cases-`Map count`,
+         rel=diff/Cases,
+         diff2=Cases2-`Map count`,
+         rel2=diff2/Cases2)
+```
+
+
+```{r}
+
+ggplot(compare_data,aes(x=Date,y=rel)) +
+  geom_bar(stat="identity") +
+  facet_wrap("`Health Authority`") +
+  theme_bw() +
+  scale_y_continuous(labels=scales::percent) +
+  theme(axis.text.x = element_text(angle=90,hjust=1)) +
+  labs(title="Comparing dashboard and health region map case counts",
+       y="Relative difference in case counts",x="Map version date",
+       caption="MountainMath, BCCDC, scrapes by @ty_olson and a special 10yo")
+```
+
+
+```{r}
+
+ggplot(compare_data,aes(x=Date,y=rel2)) +
+  geom_bar(stat="identity") +
+  facet_wrap("`Health Authority`") +
+  theme_bw() +
+  scale_y_continuous(labels=scales::percent) +
+  theme(axis.text.x = element_text(angle=90,hjust=1)) +
+  labs(title="Comparing COVID Data Working Group and health region map case counts",
+       y="Relative difference in case counts",x="Map version date",
+       caption="MountainMath, Canada COVID Data Working Group, scrapes by @ty_olson and a special 10yo")
+```
+
+
+
+
