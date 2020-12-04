@@ -126,7 +126,7 @@ plot_data %>%
        color=NULL,
        caption="MountainMath, Data: PHAC")
 
-ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
-ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
+#ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
+#ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
 
 ```
