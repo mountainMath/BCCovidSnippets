@@ -277,6 +277,12 @@ cases2 <- get_canada_covid_working_group_cases() %>%
   count(`Health Authority`=health_region,Date,name="Cases") %>%
   mutate(`Health Authority`=recode(`Health Authority`,"Island"="Vancouver Island"))
 
+if (cases2 %>% filter(Date==as.Date("2020-12-03")) %>% nrow() == 0) { # manually add data if needed
+  cases2 <- cases2 %>%
+    bind_rows(tibble(`Health Authority`=c("Fraser","Interior","Vancouver Island","Northern","Vancouver Coastal"),
+                   Date=as.Date("2020-12-03"),
+                   Cases=c(465,82,10,23,114)))
+}
 
 map_data <- hr_data %>%
   left_join(cdp %>% select(HR_UID,Population=Total,Name),by="Name") %>%
