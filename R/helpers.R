@@ -16,6 +16,27 @@ extract_stl_seasonal <- function(c){
   as_tibble(cc$time.series)$seasonal
 }
 
+
+extract_stl_trend_m <- function(c){
+  #print(length(c))
+  cc <- c %>%
+    log %>%
+    ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
+    stl(s.window=14,t.window=14) 
+  
+  as_tibble(cc$time.series)$trend %>% exp()
+}
+
+extract_stl_seasonal_m <- function(c){
+  #print(length(c))
+  cc <- c %>%
+    log() %>%
+    ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
+    stl(s.window=14,t.window=14) 
+  
+  as_tibble(cc$time.series)$seasonal%>% exp()
+}
+
 compute_rolling_exp_fit <- function(r,window_width=7,min_obs=window_width-1,se=3){
   reg<-roll::roll_lm(seq(1,length(r)),log(r),width=window_width,min_obs=min_obs)
   reg$coefficients %>%
