@@ -1,0 +1,210 @@
+---
+title: "BCSchoolTracker"
+author: "Jens von Bergmann"
+date: "30/11/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(rvest)
+library(mountainmathHelpers)
+library(sf)
+library(PROJ)
+library(cancensus)
+
+extract_table_data <- function(node){
+    h <- node %>% rvest::html_nodes("thead th") %>% rvest::html_text()
+  rows <- node %>% rvest::html_nodes("tbody tr")
+  data <- rows %>% lapply(function(d) d %>% 
+                            rvest::html_nodes("td") %>% 
+                            rvest::html_text() %>% 
+                            t() %>% 
+                            as.data.frame) %>%
+    bind_rows() %>%
+    setNames(h)
+  
+  data
+}
+```
+
+```{r}
+get_data_for_page <- function(p=1){
+  url = "https://us-east-1-renderer-read.knack.com/v1/scenes/scene_1/views/view_3/records?callback=jQuery17201415845315599671_1606757085608&format=both&rows_per_page=100&sort_field=field_16&sort_order=desc&_=1606757085628"
+  url <- paste0(url,"&page=",p)
+  
+  d <- httr::GET(url,httr::set_cookies( "connect.sid"="s%3A51R3S-8YTv08QV_IejVfqJsW1RxnUdln.WuHEEIrAF6niDEAB3MWgjvWA%2FkzArewbBDZ%2FppCUdVY"),
+                 httr::accept("text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01"),
+                 httr::add_headers("X-Knack-Application-Id"= "5faae3b10442ac00165da195",
+                                   "Accept-Encoding"="gzip, deflate, br",
+                                   "X-Knack-REST-API-Key"= "renderer",
+                                   "x-knack-new-builder"= "true"))
+  
+  c <- httr::content(d,"text") %>%
+    gsub("^.*\\(\\{","{",.) %>%
+    gsub("\\}\\);$","}",.) %>%
+    jsonlite::fromJSON()
+  
+  data <- c$records %>% as_tibble()
+  
+  print(paste0("Got data for page ",c$current_page," of ",c$total_pages))
+
+  
+  attr(data,"total_pages") <- c$total_pages
+  data 
+}
+
+clean_data <- function(d){
+  tibble(Date=as.Date(d$field_16,format="%m/%d/%Y"),
+           Name=d$field_13_raw %>% map(function(f)f$identifier) %>% as.character,
+           `Health Authority`=d$field_26_raw %>% map(function(f)f$identifier) %>% as.character,
+           Verification=d$field_14_raw %>% map(function(f)f$identifier) %>% as.character,
+           `Exposure dates`=d$field_15,
+           `Exposure count`=d$field_25) %>%
+      bind_cols(d$field_19_raw %>% as_tibble) %>%
+    mutate(E=str_extract(`Exposure count`,"Exposure \\d+|Secondary \\d+") %>% 
+             unlist() %>% 
+             gsub("Exposure |Secondary ","",.) %>% 
+             as.integer()) %>%
+    mutate_at(c("latitude","longitude"),as.numeric)
+}
+
+get_all_data <- function(){
+  p=1
+  raw_data <- get_data_for_page(p)
+  data <- clean_data(raw_data)
+  while (attr(raw_data,"total_pages")>p) {
+    p <- p + 1
+    raw_data <- get_data_for_page(p)
+    data <- bind_rows(data, clean_data(raw_data))
+  }
+  data
+}
+
+data <- get_all_data()
+```
+
+
+## Heat map
+
+```{r}
+bb<-metro_van_bbox()
+m <- cancensus::get_census("CA16",regions=list(CMA="59933"),geo_format = "sf",level="CSD")
+
+
+school_data <- data %>%
+  mutate_at(c("latitude","longitude"),as.numeric) %>%
+  filter(!is.na(latitude)) %>%
+  filter(between(latitude,bb$ymin,bb$ymax),
+         between(longitude,bb$xmin,bb$xmax)) %>%
+  mutate(E=coalesce(E,1)) %>%
+  group_by(Name) %>%
+  top_n(1,E) %>%
+  expand(latitude,longitude,E,count = seq(1:E)) %>%
+  st_as_sf(coords=c("longitude","latitude"),crs=4326,agr="constant") %>%
+  ungroup() %>%
+  st_jitter(amount=0.005) %>%
+  cbind(st_coordinates(.)) %>%
+  rename(!!!c("longitude"="X","latitude"="Y"))
+
+  
+  #sf::st_as_sf(coords=c("longitude","latitude"),agr="constant",na.fail = FALSE) %>%
+ggplot(m) +
+  stat_density2d(data=school_data,
+                 aes(x=longitude,y=latitude, fill = ..level.., alpha = ..level..),
+                 h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
+                 bins = 16, geom = "polygon", breaks=c(1,2.5,5,7.5,10,15,20,25,30,40,50,60)) +
+  scale_fill_viridis_c(guide=FALSE,option="magma") +
+  scale_alpha_continuous(guide=FALSE) +
+  geom_roads() +
+  geom_water(color="grey",size=0.1) +
+  geom_sf(data=school_data,size=0.1,alpha=0.4) +
+  geom_sf(fill=NA,color="brown",size=0.1) +
+  coord_bbox(metro_van_bbox("tight")) +
+  labs(x=NULL,y=NULL,fill=NULL,
+       title="Geographic distribution of school exposure notifications",
+       caption="MountainMath, Data: BC School Covid Tracker")
+```
+## Children density heat map for comparison
+```{r}
+d <- get_census("CA16",regions=list(CMA="59933"),level="DA",geo_format = "sf",vectors=c("v_CA16_25","v_CA16_43","v_CA16_67","v_CA16_70","v_CA16_73"),labels="short") %>%
+  mutate(children=select(.,matches("v_")) %>% st_drop_geometry()%>% rowSums(na.rm=TRUE)) 
+
+dd <- d %>% 
+  select(children) %>%
+  filter(children>0) %>%
+  mutate(children=as.integer(children/5)) %>%
+  dotdensity::compute_dots("children") %>%
+  #st_sample((.)$children) %>%
+  st_coordinates() %>%
+  as_tibble()
+  
+
+ggplot(m) +
+  stat_density2d(data=dd,
+                 aes(x=X,y=Y, fill = ..level.., alpha = ..level..),
+                 h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
+                 bins = 16, geom = "polygon") + #, breaks=c(1,2.5,5,7.5,10,12.5,15,17.5,20,25,30,35)) +
+  scale_fill_viridis_c(guide=FALSE,option="magma") +
+  scale_alpha_continuous(guide=FALSE) +
+  geom_roads() +
+  geom_water(color="grey",size=0.1) +
+  #geom_sf(data=school_data,size=0.1,alpha=0.4) +
+  geom_sf(fill=NA,color="brown",size=0.1) +
+  coord_bbox(metro_van_bbox("tight")) +
+  labs(x=NULL,y=NULL,fill=NULL,
+       title="Geographic distribution of children 5-17yo",
+       caption="MountainMath, StatCan Census 2016")
+
+```
+
+
+## FSA based data
+```{r}
+data %>%
+  mutate(FSA=substr(zip,1,3)) %>%
+  group_by(FSA) %>%
+  mutate(n=n()) %>%
+  filter(n>5) %>%
+  ggplot(aes(x=reorder(FSA,n))) +
+  geom_bar() +
+  coord_flip()
+```
+
+```{r}
+geos <- get_2016_census_fsa_geos() %>%
+  filter(PRUID=="59") %>%
+  rmapshaper::ms_simplify(0.2) %>% 
+  sf::st_transform(4326)
+cd <- get_2016_census_fsa_data() %>%
+  select(FSA=`GEO_CODE (POR)`,
+         Characteristic=`DIM: Profile of Forward Sortation Areas (2247)`,
+         ID=`Member ID: Profile of Forward Sortation Areas (2247)`,
+         Total=`Dim: Sex (3): Member ID: [1]: Total - Sex`) %>%
+  mutate(Total=as.numeric(Total))
+
+cdd <- cd %>% 
+  filter(Characteristic %in% c("5 to 9 years","10 to 14 years")) %>%
+  group_by(FSA) %>% 
+  summarise(Total=sum(Total),.groups="drop")
+```
+
+```{r}
+plot_data <- geos %>%
+  filter(PRUID=="59") %>%
+  select(FSA=CFSAUID) %>%
+  left_join(cdd,by="FSA") %>%
+  left_join(data %>%
+              mutate(FSA=substr(zip %>% gsub(" ","",.),1,3)) %>%
+              group_by(FSA) %>% 
+              summarize(n=n(),.groups="drop"),by="FSA") %>%
+  mutate(rate=n/Total*1000)
+  
+ggplot(plot_data,aes(fill=rate)) +
+  geom_sf() +
+  scale_fill_viridis_c(option="magma") +
+  coord_bbox(metro_van_bbox()) +
+  labs(title="School exposures per 1000 children aged 5-14",fill=NULL)
+```
+

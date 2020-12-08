@@ -130,3 +130,49 @@ plot_data %>%
 #ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
 
 ```
+
+
+
+```{r}
+successful_provinces <- c("NL","NT","NS","YT","PE","NB")
+
+province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
+                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
+
+plot_data <- covid_data %>% 
+  filter(Province!="Repatriated") %>%
+  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
+  complete(Date,Province) %>%
+  mutate(Cases=replace_na(Cases,0),
+         Deaths=replace_na(Deaths,0)) %>%
+  left_join(pop_data,by="Province") %>%
+  group_by(Province) %>%
+  arrange(desc(Date)) %>%
+  filter(cumsum(Cases)>0) %>% # remove trailing zeros
+  arrange(Date) %>%
+  mutate(Cases=clean_missing_weekend_data(Cases)) %>%
+  mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
+  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces"))
+
+plot_data %>%
+  filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
+  filter(!(shortProvince %in% c("NT","YT","NU"))) %>%
+  #filter(Date>=as.Date("2020-11-01")) %>%
+  ggplot(aes(x=Date,y=incidence,group=shortProvince,color=type)) +
+  geom_line() +
+  #geom_point(shape=21) +
+  scale_color_manual(values=sanzo::duos$c079 %>% rev) +
+  #facet_wrap("type",ncol=1,scales ="free_y") +
+  expand_limits(x=max(plot_data$Date)+7) +
+  theme_bw() +
+  theme(legend.position="bottom") +
+  scale_x_date(breaks="months",labels=function(d)strftime(d,"%b")) +
+  labs(title="Two COVID Canadas",
+       x=NULL,y="Cumulative 7 day cases per 100k population",
+       color=NULL,
+       caption="MountainMath, Data: PHAC")
+
+#ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
+#ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
+
+```
