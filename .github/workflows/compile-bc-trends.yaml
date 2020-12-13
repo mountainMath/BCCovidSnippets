@@ -22,8 +22,7 @@ jobs:
           install.packages("ggrepel")
           install.packages("ggtext")
           install.packages("rmarkdown")
-          remotes::install_github("mountainmath/CanCovidData")
-          remotes::install_cran("rmarkdown")
+          remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
       - name: Render README
         run: Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
