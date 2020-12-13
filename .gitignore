@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+*_files/*
+*_files/figure-*
