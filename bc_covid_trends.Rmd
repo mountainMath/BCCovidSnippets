@@ -195,7 +195,7 @@ data %>%
 
 ## Health Region Trends
 
-```{r hr-tren}
+```{r hr-trend}
 pop_data <- read_csv(here("data/hr_pop.csv")) %>%
   select(HR_UID=Region,HR=`Health Service Delivery Area`,Population=Total)
 
