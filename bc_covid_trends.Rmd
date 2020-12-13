@@ -10,7 +10,8 @@ output: rmarkdown::github_document
 knitr::opts_chunk$set(
 	echo = FALSE,
 	message = FALSE,
-	warning = FALSE
+	warning = FALSE,
+	dev = 'svg'
 )
 library(ggplot2)
 library(readr)

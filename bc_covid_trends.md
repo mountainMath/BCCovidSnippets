@@ -1,6 +1,6 @@
 BC Covid Trends
 ================
-13 December, 2020
+12 December, 2020
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -11,17 +11,17 @@ repo](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.
 
 ## Overall BC Trend
 
-![](bc_covid_trends_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+![](bc_covid_trends_files/figure-gfm/unnamed-chunk-1-1.svg)<!-- -->
 
-![](bc_covid_trends_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
+![](bc_covid_trends_files/figure-gfm/unnamed-chunk-2-1.svg)<!-- -->
 
 ## Health Authority Trends
 
-![](bc_covid_trends_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](bc_covid_trends_files/figure-gfm/unnamed-chunk-3-1.svg)<!-- -->
 
 ## Health Region Trends
 
-![](bc_covid_trends_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+![](bc_covid_trends_files/figure-gfm/unnamed-chunk-4-1.svg)<!-- -->
 
 ### Health Region geocoding problems
 
@@ -30,4 +30,4 @@ geographies, which makes the above Health Region level graph difficult
 to interpret. This graph shows the share of cases in each Health
 Authority that were geocoded to Health Region geographies.
 
-![](bc_covid_trends_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](bc_covid_trends_files/figure-gfm/unnamed-chunk-5-1.svg)<!-- -->
