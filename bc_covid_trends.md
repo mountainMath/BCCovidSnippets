@@ -1,6 +1,6 @@
 BC Covid Trends
 ================
-Last updated at 13 December, 2020 - 18:07
+Last updated at 13 December, 2020 - 18:15
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -23,7 +23,7 @@ repo](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.
 
 ## Health Region Trends
 
-<img src="bc_covid_trends_files/figure-gfm/hr-tren-1.png" width="2100" />
+<img src="bc_covid_trends_files/figure-gfm/hr-trend-1.png" width="2100" />
 
 ### Health Region geocoding problems
 
