@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-12 December, 2020
+13 December, 2020
 
 ![](bc_covid_trends_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
