@@ -22,6 +22,7 @@ jobs:
           install.packages("ggrepel")
           install.packages("ggtext")
           install.packages("rmarkdown")
+          install.packages("here")
         shell: Rscript {0}
       - name: Render BC Trends
         run: Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
