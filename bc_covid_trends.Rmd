@@ -189,8 +189,7 @@ data %>%
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
-  theme(plot.subtitle = element_markdown()) +
-  expand_limits(x=as.Date("2020-11-18"))
+  theme(plot.subtitle = element_markdown())
 ```
 
 ## Health Region Trends
