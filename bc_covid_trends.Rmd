@@ -203,9 +203,9 @@ data <- get_british_columbia_hr_case_data() %>%
   filter(!(HA %in% c("Out of Canada","All")),!(HR %in% c("All","Unknown"))) %>%
   filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
   group_by(HR,HA) %>%
-  mutate(Trend=extract_stl_trend(Cases),
-         Seasonal=extract_stl_seasonal(Cases)) %>%
-  mutate(Cleaned=Cases-Seasonal) %>%
+  mutate(Trend=extract_stl_trend_m(Cases+1),
+         Seasonal=extract_stl_seasonal_m(Cases+1)) %>%
+  mutate(Cleaned=Cases/Seasonal-1) %>%
   left_join(read_csv(here("data/ha_pop.csv")) %>%
               select(HA=`Health Authority`,HA_Population=Total), by="HA") %>%
   left_join(pop_data, by="HR") %>%
