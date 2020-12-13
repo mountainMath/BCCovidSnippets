@@ -1,6 +1,6 @@
 BC Covid Trends
 ================
-Last updated at 13 December, 2020 - 18:15
+Last updated at 13 December, 2020 - 11:02
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
