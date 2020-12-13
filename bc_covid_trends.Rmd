@@ -15,8 +15,10 @@ knitr::opts_chunk$set(
 library(tidyverse)
 library(ggrepel)
 library(ggtext)
+library(here)
+library(sanzo)
 
-source(here::here("R/helpers.R"))
+source(here("R/helpers.R"))
 
 major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks and\ntravel ban")
 major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks and\ntravel ban")
@@ -49,7 +51,7 @@ full_labels <- function(label_y,
   )
 }
 
-ha_colours <- setNames(c(sanzo::trios$c157,sanzo::trios$c149),
+ha_colours <- setNames(c(trios$c157,trios$c149),
                        c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
 
 ```
@@ -88,7 +90,7 @@ data %>%
 
 
 ```{r}
-pop_data <- read_csv(here::here("data/ha_pop.csv")) %>%
+pop_data <- read_csv(here("data/ha_pop.csv")) %>%
   select(`Health Authority`,Population=Total)
 
 data <- get_british_columbia_case_data() %>%
@@ -100,7 +102,7 @@ data <- get_british_columbia_case_data() %>%
   mutate(Trend=extract_stl_trend_m(Cases),
          Seasonal=extract_stl_seasonal_m(Cases)) %>%
   mutate(Cleaned=Cases/Seasonal) %>%
-  left_join(read_csv(here::here("data/ha_pop.csv")) %>%
+  left_join(read_csv(here("data/ha_pop.csv")) %>%
               filter(`Health Authority` != "British Columbia") %>%
               mutate(HA=ifelse(`Health Authority` %in% c("Fraser","Vancouver Coastal"),`Health Authority`,"Rest of BC")) %>%
               #mutate(HA=`Health Authority`) %>%
@@ -130,7 +132,7 @@ data %>%
   theme(plot.subtitle = element_markdown()) 
 ```
 ```{r}
-pop_data <- read_csv(here::here("data/ha_pop.csv")) %>%
+pop_data <- read_csv(here("data/ha_pop.csv")) %>%
   select(`Health Authority`,Population=Total)
 
 data <- get_british_columbia_case_data() %>%
@@ -146,7 +148,7 @@ data <- get_british_columbia_case_data() %>%
   mutate(Trend=extract_stl_trend_m(Cases),
          Seasonal=extract_stl_seasonal_m(Cases)) %>%
   mutate(Cleaned=Cases/Seasonal) %>%
-  left_join(read_csv(here::here("data/ha_pop.csv")) %>%
+  left_join(read_csv(here("data/ha_pop.csv")) %>%
               filter(`Health Authority` != "British Columbia") %>%
               mutate(HA=`Health Authority`) %>%
               group_by(HA) %>%
@@ -176,7 +178,7 @@ data %>%
   expand_limits(x=as.Date("2020-11-18"))
 ```
 ```{r}
-pop_data <- read_csv(here::here("data/hr_pop.csv")) %>%
+pop_data <- read_csv(here("data/hr_pop.csv")) %>%
   select(HR_UID=Region,HR=`Health Service Delivery Area`,Population=Total)
 
 data <- get_british_columbia_hr_case_data() %>%
@@ -187,7 +189,7 @@ data <- get_british_columbia_hr_case_data() %>%
   mutate(Trend=extract_stl_trend(Cases),
          Seasonal=extract_stl_seasonal(Cases)) %>%
   mutate(Cleaned=Cases-Seasonal) %>%
-  left_join(read_csv(here::here("data/ha_pop.csv")) %>%
+  left_join(read_csv(here("data/ha_pop.csv")) %>%
               select(HA=`Health Authority`,HA_Population=Total), by="HA") %>%
   left_join(pop_data, by="HR") %>%
   mutate(Population=coalesce(Population,HA_Population)) %>%
