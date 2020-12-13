@@ -13,7 +13,6 @@ knitr::opts_chunk$set(
 	warning = FALSE
 )
 library(tidyverse)
-library(CanCovidData)
 library(ggrepel)
 library(ggtext)
 
@@ -57,7 +56,7 @@ ha_colours <- setNames(c(sanzo::trios$c157,sanzo::trios$c149),
 
 
 ```{r}
-data <- CanCovidData::get_british_columbia_case_data() %>%
+data <- get_british_columbia_case_data() %>%
   #filter(`Health Authority` %in% c("Vancouver Coastal","Fraser")) %>%
   count(Date=`Reported Date`,name="Cases") %>%
   filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
@@ -92,7 +91,7 @@ data %>%
 pop_data <- read_csv(here::here("data/ha_pop.csv")) %>%
   select(`Health Authority`,Population=Total)
 
-data <- CanCovidData::get_british_columbia_case_data() %>%
+data <- get_british_columbia_case_data() %>%
   mutate(HA=ifelse(`Health Authority` %in% c("Fraser","Vancouver Coastal"),`Health Authority`,"Rest of BC")) %>%
   #mutate(HA=`Health Authority`) %>%
   count(Date=`Reported Date`,HA, name="Cases") %>%
@@ -134,7 +133,7 @@ data %>%
 pop_data <- read_csv(here::here("data/ha_pop.csv")) %>%
   select(`Health Authority`,Population=Total)
 
-data <- CanCovidData::get_british_columbia_case_data() %>%
+data <- get_british_columbia_case_data() %>%
   mutate(HA=`Health Authority`) %>%
   filter(HA!="Out of Canada") %>%
   #mutate(HA=ifelse(`Health Authority` %in% c("Fraser","Vancouver Coastal"),`Health Authority`,"Rest of BC")) %>%
@@ -180,7 +179,7 @@ data %>%
 pop_data <- read_csv(here::here("data/hr_pop.csv")) %>%
   select(HR_UID=Region,HR=`Health Service Delivery Area`,Population=Total)
 
-data <- CanCovidData::get_british_columbia_hr_case_data() %>%
+data <- get_british_columbia_hr_case_data() %>%
   rename(HA=`Health Authority`,HR=`Health Region`) %>%
   filter(!(HA %in% c("Out of Canada","All")),!(HR %in% c("All","Unknown"))) %>%
   filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
@@ -227,7 +226,7 @@ data %>%
 
 ```{r}
 
-data_u <- CanCovidData::get_british_columbia_hr_case_data() %>%
+data_u <- get_british_columbia_hr_case_data() %>%
   rename(HA=`Health Authority`,HR=`Health Region`) %>%
   filter(HA != "Out of Canada") %>%
   filter(Date<max(Date))
