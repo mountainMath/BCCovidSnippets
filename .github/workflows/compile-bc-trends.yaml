@@ -18,7 +18,10 @@ jobs:
       - name: Install rmarkdown, remotes, and required packages
         run: |
           install.packages("remotes")
-          install.packages("tidyverse")
+          install.packages("ggplot2")
+          install.packages("tidyr")
+          install.packages("dplyr")
+          install.packages("roll")
           install.packages("ggrepel")
           install.packages("ggtext")
           install.packages("rmarkdown")
