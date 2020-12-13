@@ -1,7 +1,7 @@
 ---
 title: "BC Covid Trends"
 #author: "Jens von Bergmann"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "Last updated at `r format(Sys.time(), '%d %B, %Y' - %H:%M)`"
 output: rmarkdown::github_document
 ---
 
@@ -11,7 +11,10 @@ knitr::opts_chunk$set(
 	echo = FALSE,
 	message = FALSE,
 	warning = FALSE,
-	fig.retina = 2
+	fig.retina = 2,
+	dpi = 300,
+	fig.width = 7,
+	fig.height = 5
 )
 library(ggplot2)
 library(readr)
