@@ -68,7 +68,7 @@ This notebook is intended to give a daily overview over BC Covid Trends. It util
 
 ## Overall BC Trend
 
-```{r}
+```{r bc-trend}
 data <- get_british_columbia_case_data() %>%
   #filter(`Health Authority` %in% c("Vancouver Coastal","Fraser")) %>%
   count(Date=`Reported Date`,name="Cases") %>%
@@ -99,8 +99,9 @@ data %>%
 ```
 
 
+## Main Health Authority Trends
 
-```{r}
+```{r main-ha-trend}
 pop_data <- read_csv(here("data/ha_pop.csv")) %>%
   select(`Health Authority`,Population=Total)
 
@@ -145,7 +146,7 @@ data %>%
 
 ## Health Authority Trends
 
-```{r}
+```{r ha-trend}
 pop_data <- read_csv(here("data/ha_pop.csv")) %>%
   select(`Health Authority`,Population=Total)
 
@@ -194,7 +195,7 @@ data %>%
 
 ## Health Region Trends
 
-```{r}
+```{r hr-tren}
 pop_data <- read_csv(here("data/hr_pop.csv")) %>%
   select(HR_UID=Region,HR=`Health Service Delivery Area`,Population=Total)
 
@@ -245,7 +246,7 @@ data %>%
 ### Health Region geocoding problems
 Health Authorities may lag in geocoding cases to Health Region geographies, which makes the above Health Region level graph difficult to interpret. This graph shows the share of cases in each Health Authority that were geocoded to Health Region geographies.
 
-```{r}
+```{r hr-check}
 
 data_u <- get_british_columbia_hr_case_data() %>%
   rename(HA=`Health Authority`,HR=`Health Region`) %>%
@@ -276,6 +277,7 @@ pd %>%
   geom_point(aes(y=share),shape=21) +
   geom_line(aes(y=share)) +
   theme_bw() +
+  theme(legend.position = "bottom") +
   scale_y_continuous(labels = scales::percent) +
   scale_color_manual(values=ha_colours) +
   labs(title="Cases with missing Health Region level geocoding",
