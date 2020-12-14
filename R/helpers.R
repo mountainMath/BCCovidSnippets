@@ -69,21 +69,3 @@ clean_missing_weekend_data <- function(tl){
   }
   tl
 }
-
-
-
-get_british_columbia_case_data <- function(){
-  path="http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Dashboard_Case_Details.csv"
-  read_csv(path,col_types=cols(.default="c")) %>%
-    rename(`Reported Date`=Reported_Date,`Health Authority`=HA,`Age group`=Age_Group) %>%
-    mutate(`Age group`=recode(`Age group`,"19-Oct"="10-19")) %>%
-    mutate(`Reported Date`=as.Date(`Reported Date`,tryFormats = c("%Y-%m-%d", "%m/%d/%Y")))
-}
-
-get_british_columbia_hr_case_data <- function(){
-  path="http://www.bccdc.ca/Health-Info-Site/Documents/BCCDC_COVID19_Regional_Summary_Data.csv"
-  read_csv(path,col_types=cols(.default="c")) %>%
-    rename(`Health Authority`=HA,`Health Region`=HSDA,Cases=Cases_Reported,`Cases Smoothed` =Cases_Reported_Smoothed ) %>%
-    mutate(Date=as.Date(Date,tryFormats = c("%Y-%m-%d", "%m/%d/%Y"))) %>%
-    mutate_at(c("Cases","Cases Smoothed"),as.numeric)
-}

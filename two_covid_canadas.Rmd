@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 )
 library(ggplot2)
 library(dplyr)
-library(tidyverse)
+library(tidyr)
 library(here)
 library(cansim)
 library(CanCovidData)
