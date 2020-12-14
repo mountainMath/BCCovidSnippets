@@ -1,7 +1,7 @@
 Two Covid Canadas
 ================
 Jens von Bergmann
-Last updated at 14 December, 2020 - 04:59
+Last updated at 14 December, 2020 - 07:50
 
 The Atlantic provinces have pursued very different COVID-19 strategies
 from the other provinces and have seen very different outcomes.
