@@ -23,7 +23,10 @@ library(CanCovidData)
 source(here::here("R/helpers.R"))
 ```
 
-This graph shows Open Table year over year change in reservations for seated diners from the [Open Table State of the industry report](https://www.opentable.com/state-of-industry).
+These graphs show Open Table year over year change in reservations for seated diners and share of restaurants that accept reservations from the [Open Table State of the industry report](https://www.opentable.com/state-of-industry).
+
+
+## Seated diners from online, phone, and walk-in reservations
 
 ```{r open-table-canada-cities}
 open_table <- get_open_table_data("fullbook") %>%
@@ -52,3 +55,33 @@ open_table %>%
        x=NULL,y="Year over year change",colour=NULL,caption="MountainMath, Data: OpenTable")
 ```
 
+
+## Restaurants open for reservations
+
+
+```{r open-table-canada-cities}
+open_table <- get_open_table_data("reopening") %>%
+  mutate(value=value/100) %>%
+  rename(Name=name)
+
+open_table %>% 
+  filter(grepl("Vancouver|Toronto|Calgary|Montr|Edmon|Otta",Name)) %>%
+  group_by(Name) %>%
+  arrange(Date) %>%
+  mutate(Trend=extract_stl_trend(value)) %>%
+  ggplot(aes(x=Date,y=Trend,color=Name,group=Name)) +
+  geom_point(shape=21,aes(y=value),alpha=0.5) +  
+  geom_line(size=0.75) +
+  scale_y_continuous(labels=scales::percent)+
+  scale_x_date(breaks="months",labels=function(d)strftime(d,"%b")) +
+  theme_dark() +
+  theme(panel.background = element_rect(fill="#444444"),
+        plot.background = element_rect(fill="#444444"),
+        legend.background = element_rect(fill="#444444"),
+        legend.key = element_rect(fill="#444444"),
+        axis.text = element_text(color="whitesmoke"),
+        text = element_text(color="whitesmoke"),
+        legend.position="bottom") +
+  labs(title="OpenTable share of restaurants accepting reservations (STL trend lines)",
+       x=NULL,y="Share of restaurants accepting reservations",colour=NULL,caption="MountainMath, Data: OpenTable")
+```
