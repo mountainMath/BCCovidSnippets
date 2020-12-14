@@ -25,6 +25,7 @@ library(CanCovidData)
 source(here("R/helpers.R"))
 ```
 
+This notebook shows the confirmed COVID cases for Canadian provinces. The code for this notebook is [available for anyone to adapt and use for their own purposes](https://github.com/mountainMath/BCCovidSnippets/blob/main/two_covid_canadas.Rmd).
 
 ```{r}
 pop_data <- get_cansim("17-10-0005") %>%
