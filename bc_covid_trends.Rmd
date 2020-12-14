@@ -118,7 +118,6 @@ data <- get_british_columbia_case_data() %>%
   left_join(read_csv(here("data/ha_pop.csv")) %>%
               filter(`Health Authority` != "British Columbia") %>%
               mutate(HA=ifelse(`Health Authority` %in% c("Fraser","Vancouver Coastal"),`Health Authority`,"Rest of BC")) %>%
-              #mutate(HA=`Health Authority`) %>%
               group_by(HA) %>%
               summarize(Population=sum(Total), .groups="drop"), by="HA") %>%
   ungroup() %>%

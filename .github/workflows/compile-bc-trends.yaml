@@ -43,6 +43,7 @@ jobs:
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
-          git commit bc_covid_trends.md -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
-          git commit two_covid_canadas.md -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
+          git commit -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
+          git commit bc_covid_trends.md bc_covid_trends_files -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
+          git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
