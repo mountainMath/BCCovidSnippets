@@ -59,7 +59,7 @@ open_table %>%
 ## Restaurants open for reservations
 
 
-```{r open-table-canada-cities}
+```{r open-table-canada-cities-2}
 open_table <- get_open_table_data("reopening") %>%
   mutate(value=value/100) %>%
   rename(Name=name)
