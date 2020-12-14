@@ -2,6 +2,7 @@ on:
   push:
     paths:
       - bc_covid_trends.Rmd
+      - two_covid_canadas.Rmd
   schedule:
     - cron: "0 1 * * 2-6"
     
@@ -31,12 +32,16 @@ jobs:
           install.packages("here")
           install.packages("sanzo")
           install.packages("scales")
+          remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
       - name: Render BC Trends
-        run: Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
+        run: |
+          Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
+          Rscript -e 'rmarkdown::render("two_covid_canadas.Rmd")'
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
           git config --local user.name "GitHub Actions"
           git commit bc_covid_trends.md -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
+          git commit two_covid_canadas.md -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"

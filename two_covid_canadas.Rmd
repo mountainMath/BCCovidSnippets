@@ -1,22 +1,34 @@
 ---
 title: "Two Covid Canadas"
 author: "Jens von Bergmann"
-date: "25/11/2020"
-output: html_document
+date: "Last updated at `r format(Sys.time(), '%d %B, %Y - %H:%M')`"
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(CanCovidData)
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	fig.retina = 2,
+	dpi = 300,
+	fig.width = 7,
+	fig.height = 5
+)
+library(ggplot2)
+library(dplyr)
 library(tidyverse)
+library(here)
+library(cansim)
+library(CanCovidData)
 
-source(here::here("R/helpers.R"))
+source(here("R/helpers.R"))
 
 ```
 
 
 ```{r}
-pop_data <- cansim::get_cansim("17-10-0005") %>%
+pop_data <- get_cansim("17-10-0005") %>%
   filter(REF_DATE==2020,`Age group`=="All ages",Sex=="Both sexes") %>%
   select(Province=GEO,Population=VALUE)
 
@@ -24,7 +36,7 @@ covid_data <- get_canada_official_provincial_data() %>%
   mutate(Province=prname, shortProvince=cansim:::short_prov.en[prname])
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 successful_provinces <- c("NL","NT","NS","YT","PE","NB")
 
 plot_data <- covid_data %>% 
@@ -68,70 +80,7 @@ plot_data %>%
        caption="MountainMath, Data: PHAC")
 ```
 
-
-
-
-
-
-
-
-```{r}
-successful_provinces <- c("NL","NT","NS","YT","PE","NB")
-
-province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
-                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
-
-plot_data <- covid_data %>% 
-  filter(Province!="Repatriated") %>%
-  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
-  complete(Date,Province) %>%
-  mutate(Cases=replace_na(Cases,0),
-         Deaths=replace_na(Deaths,0)) %>%
-  left_join(pop_data,by="Province") %>%
-  group_by(Province) %>%
-  arrange(desc(Date)) %>%
-  filter(cumsum(Cases)>0) %>% # remove trailing zeros
-  arrange(Date) %>%
-  mutate(Cases=clean_missing_weekend_data(Cases)) %>%
-  mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
-  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces"))
-
-plot_data %>%
-  filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
-  filter(!(shortProvince %in% c("NT","YT","NU"))) %>%
-  #filter(Date>=as.Date("2020-11-01")) %>%
-  ggplot(aes(x=Date,y=incidence,group=shortProvince)) +
-  geom_line(data=~filter(.,shortProvince %in% successful_provinces),
-            aes(color=shortProvince)) +
-  geom_point(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
-            aes(color=shortProvince)) +
-  ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
-            aes(label=shortProvince,color=shortProvince),hjust=1.2,#nudge_x = 20,min.segment.length = 0,
-            segment.colour="darkgrey") +
-  geom_line(data=~filter(.,!(shortProvince %in% successful_provinces)),
-            aes(color=shortProvince)) +
-  geom_point(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
-            aes(color=shortProvince)) +
-  ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
-            aes(color=shortProvince,label=shortProvince),hjust=1.2,#nudge_x = 20,min.segment.length = 0,
-            segment.colour="darkgrey") +
-  #scale_color_brewer(palette = "Dark2",guide=FALSE) +
-  scale_color_manual(values=province_colours,guide=FALSE) +
-  facet_wrap("type",ncol=1,scales ="free_y") +
-  expand_limits(x=max(plot_data$Date)+7) +
-  theme_bw() +
-  scale_x_date(breaks="months",labels=function(d)strftime(d,"%b")) +
-  labs(title="Two COVID Canadas",
-       x=NULL,y="Cumulative 7 day cases per 100k population",
-       color=NULL,
-       caption="MountainMath, Data: PHAC")
-
-#ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
-#ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
-
-```
-
-
+The Atlantic provinces have pursued very different COVID-19 strategies from the other provinces and have seen very different outcomes.
 
 ```{r}
 successful_provinces <- c("NL","NT","NS","YT","PE","NB")
@@ -176,3 +125,65 @@ plot_data %>%
 #ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
 
 ```
+
+For better comparison we can plot the Atlantic provinces and the other provinces on different scales.
+
+
+```{r two-covid-canadas}
+successful_provinces <- c("NL","NT","NS","YT","PE","NB")
+
+province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
+                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
+
+plot_data <- covid_data %>% 
+  filter(Province!="Repatriated") %>%
+  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
+  complete(Date,Province) %>%
+  mutate(Cases=replace_na(Cases,0),
+         Deaths=replace_na(Deaths,0)) %>%
+  left_join(pop_data,by="Province") %>%
+  group_by(Province) %>%
+  arrange(desc(Date)) %>%
+  filter(cumsum(Cases)>0) %>% # remove trailing zeros
+  arrange(Date) %>%
+  mutate(Cases=clean_missing_weekend_data(Cases)) %>%
+  mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
+  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces"))
+
+plot_data %>%
+  filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
+  filter(!(shortProvince %in% c("NT","YT","NU"))) %>%
+  #filter(Date>=as.Date("2020-11-01")) %>%
+  ggplot(aes(x=Date,y=incidence,group=shortProvince)) +
+  geom_line(data=~filter(.,shortProvince %in% successful_provinces),
+            aes(color=shortProvince)) +
+  geom_point(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
+            aes(color=shortProvince)) +
+  ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
+            aes(label=shortProvince,color=shortProvince),hjust=-1.2,direction="y",
+            segment.colour="darkgrey") +
+  geom_line(data=~filter(.,!(shortProvince %in% successful_provinces)),
+            aes(color=shortProvince)) +
+  geom_point(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
+            aes(color=shortProvince)) +
+  ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
+            aes(color=shortProvince,label=shortProvince),hjust=-1.2,direction="y",
+            segment.colour="darkgrey") +
+  #scale_color_brewer(palette = "Dark2",guide=FALSE) +
+  scale_color_manual(values=province_colours,guide=FALSE) +
+  facet_wrap("type",ncol=1,scales ="free_y") +
+  expand_limits(x=max(plot_data$Date)+7) +
+  theme_bw() +
+  scale_x_date(breaks="months",labels=function(d)strftime(d,"%b")) +
+  labs(title="Two COVID Canadas",
+       x=NULL,y="Cumulative 7 day cases per 100k population",
+       color=NULL,
+       caption="MountainMath, Data: PHAC")
+
+#ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
+#ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
+
+```
+
+
+

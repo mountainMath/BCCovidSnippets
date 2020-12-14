@@ -1,6 +1,6 @@
 ---
 title: "BC Covid Trends"
-#author: "Jens von Bergmann"
+author: "Jens von Bergmann"
 date: "Last updated at `r format(Sys.time(), '%d %B, %Y - %H:%M')`"
 output: rmarkdown::github_document
 ---
