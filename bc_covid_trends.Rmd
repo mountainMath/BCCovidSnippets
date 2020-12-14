@@ -24,6 +24,7 @@ library(ggrepel)
 library(ggtext)
 library(here)
 library(sanzo)
+library(CanCovidData)
 
 source(here("R/helpers.R"))
 
