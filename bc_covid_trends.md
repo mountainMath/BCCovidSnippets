@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 14 December, 2020 - 01:12
+Last updated at 13 December, 2020 - 20:49
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -12,19 +12,19 @@ repo](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.
 
 ## Overall BC Trend
 
-<img src="bc_covid_trends_files/figure-gfm/bc-trend-1.png" width="2100" />
+<img src="bc_covid_trends_files/figure-gfm/bc-trend-1.png" width="1050" />
 
 ## Main Health Authority Trends
 
-<img src="bc_covid_trends_files/figure-gfm/main-ha-trend-1.png" width="2100" />
+<img src="bc_covid_trends_files/figure-gfm/main-ha-trend-1.png" width="1050" />
 
 ## Health Authority Trends
 
-<img src="bc_covid_trends_files/figure-gfm/ha-trend-1.png" width="2100" />
+<img src="bc_covid_trends_files/figure-gfm/ha-trend-1.png" width="1050" />
 
 ## Health Region Trends
 
-<img src="bc_covid_trends_files/figure-gfm/hr-trend-1.png" width="2100" />
+<img src="bc_covid_trends_files/figure-gfm/hr-trend-1.png" width="1050" />
 
 ### Health Region geocoding problems
 
@@ -33,4 +33,4 @@ geographies, which makes the above Health Region level graph difficult
 to interpret. This graph shows the share of cases in each Health
 Authority that were geocoded to Health Region geographies.
 
-<img src="bc_covid_trends_files/figure-gfm/hr-check-1.png" width="2100" />
+<img src="bc_covid_trends_files/figure-gfm/hr-check-1.png" width="1050" />

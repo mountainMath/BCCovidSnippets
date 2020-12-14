@@ -23,7 +23,6 @@ library(cansim)
 library(CanCovidData)
 
 source(here("R/helpers.R"))
-
 ```
 
 
