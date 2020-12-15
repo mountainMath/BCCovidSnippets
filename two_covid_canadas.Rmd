@@ -1,7 +1,7 @@
 ---
 title: "Two Covid Canadas"
 author: "Jens von Bergmann"
-date: "Last updated at `r format(Sys.time(), '%d %B, %Y - %H:%M')`"
+date: "Last updated at `r format(Sys.time(), '%d %B, %Y - %H:%M',tz='America/Vancouver')`"
 output: rmarkdown::github_document
 ---
 
@@ -82,7 +82,7 @@ plot_data %>%
 
 The Atlantic provinces have pursued very different COVID-19 strategies from the other provinces and have seen very different outcomes.
 
-```{r}
+```{r two-covid-canadas-overview}
 successful_provinces <- c("NL","NT","NS","YT","PE","NB")
 
 province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
