@@ -2,7 +2,7 @@ on:
   schedule:
     - cron: "0 * * * *"
     
-name: Render BC Trends
+name: Render BC Trends hourly
 
 jobs:
   render:
