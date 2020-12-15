@@ -6,7 +6,7 @@ name: Render BC Trends
 
 jobs:
   render:
-    name: Render BC Trends
+    name: Render BC Trends hourly
     runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
