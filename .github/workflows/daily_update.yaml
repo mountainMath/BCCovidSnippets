@@ -1,0 +1,46 @@
+on:
+  schedule:
+    - cron: "0 * * * *"
+    
+name: Render BC Trends
+
+jobs:
+  render:
+    name: Render BC Trends
+    runs-on: macOS-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@v1
+      - uses: r-lib/actions/setup-pandoc@v1
+      - name: Install rmarkdown, remotes, and required packages
+        run: |
+          install.packages("remotes")
+          install.packages("ggplot2")
+          install.packages("tidyr")
+          install.packages("dplyr")
+          install.packages("roll")
+          install.packages("readr")
+          install.packages("ggrepel")
+          install.packages("ggtext")
+          install.packages("rmarkdown")
+          install.packages("here")
+          install.packages("sanzo")
+          install.packages("scales")
+          install.packages("cansim")
+          remotes::install_github("mountainMath/CanCovidData")
+        shell: Rscript {0}
+      - name: Render BC Trends
+        run: |
+          Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
+          Rscript -e 'rmarkdown::render("two_covid_canadas.Rmd")'
+      - name: Commit results
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          git commit -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
+          git commit bc_covid_trends.md bc_covid_trends_files -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
+          git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
+          git commit open_table.md open_table_files -m 'Re-build open_table.Rmd' || echo "No changes to commit"
+          git push origin || echo "No changes to commit"
