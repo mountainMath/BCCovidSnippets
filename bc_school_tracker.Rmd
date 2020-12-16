@@ -101,7 +101,7 @@ In BC we don't have good data on community level COVID cases. But we can, somewh
 
 However, this data is not normalized by population, so it should be viewd in context of the school aged (5-17yo) population further down.
 
-## School Exposure Heat map
+## School Exposure Heat Map
 
 ```{r}
 bb<-metro_van_bbox()
