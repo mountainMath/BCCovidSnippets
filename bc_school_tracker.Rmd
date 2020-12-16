@@ -1,8 +1,8 @@
 ---
-title: "BCSchoolTracker"
+title: "BC School Tracker"
 author: "Jens von Bergmann"
-date: "30/11/2020"
-output: html_document
+date: "Last updated at `r format(Sys.time(), '%d %B, %Y - %H:%M',tz='America/Vancouver')`"
+output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -103,7 +103,7 @@ However, this data is not normalized by population, so it should be viewd in con
 
 ## School Exposure Heat Map
 
-```{r}
+```{r school-tracker-schools}
 bb<-metro_van_bbox()
 m <- cancensus::get_census("CA16",regions=list(CMA="59933"),geo_format = "sf",level="CSD")
 
@@ -144,7 +144,7 @@ ggplot(m) +
 
 ## Children density heat map for comparison
 
-```{r}
+```{r school-tracker-children}
 d <- get_census("CA16",regions=list(CMA="59933"),level="DA",geo_format = "sf",vectors=c("v_CA16_25","v_CA16_43","v_CA16_67","v_CA16_70","v_CA16_73"),labels="short") %>%
   mutate(children=select(.,matches("v_")) %>% st_drop_geometry()%>% rowSums(na.rm=TRUE)) 
 

@@ -7,4 +7,5 @@ Two notebooks are recompiled daily with high-resolution images at 5pm Pacific ti
 * [BC Trends](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.md)
 * [Two COVID Canadas](https://github.com/mountainMath/BCCovidSnippets/blob/main/two_covid_canadas.md)
 * [Open Table dine-in reservations](https://github.com/mountainMath/BCCovidSnippets/blob/main/open_table.md)
+* [BC School Tracker](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_school_tracker.md)
 
