@@ -14,6 +14,7 @@ jobs:
     runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      nextzen_API_key: ${{ secrets.NEXTZEN_API_KEY }}
     steps:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@v1
@@ -40,6 +41,7 @@ jobs:
           install.packages("PROJ")
           install.packages("geojsonsf")
           remotes::install_github("mountainMath/mountainmathHelpers")
+          remotes::install_github("mountainMath/dotdensity")
           remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
       - name: Render BC Trends
