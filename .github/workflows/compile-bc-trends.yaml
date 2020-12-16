@@ -4,6 +4,7 @@ on:
       - bc_covid_trends.Rmd
       - two_covid_canadas.Rmd
       - open_table.Rmd
+      - bc_school_tracker.Rmd
 
 name: Render BC Trends
 
@@ -32,12 +33,26 @@ jobs:
           install.packages("sanzo")
           install.packages("scales")
           install.packages("cansim")
+          instsall.packages("cancensus")
+          instsall.packages("stringr")
+          instsall.packages("rvest")
+          instsall.packages("sf")
+          instsall.packages("PROJ")
+          remotes::install_github("mountainMath/mountainmathHelpers")
           remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
       - name: Render BC Trends
         run: |
           Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
+      - name: Render Two COVID Canadas
+        run: |
           Rscript -e 'rmarkdown::render("two_covid_canadas.Rmd")'
+      - name: Render OpenTable
+        run: |
+          Rscript -e 'rmarkdown::render("open_table.Rmd")'
+      - name: Render BC School Tracker
+        run: |
+          Rscript -e 'rmarkdown::render("bc_school_tracker.Rmd")'
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
@@ -46,4 +61,5 @@ jobs:
           git commit bc_covid_trends.md bc_covid_trends_files -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
           git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git commit open_table.md open_table_files -m 'Re-build open_table.Rmd' || echo "No changes to commit"
+          git commit bc_school_tracker.md bc_school_tracker_files -m 'Re-build bc_school_tracker.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
