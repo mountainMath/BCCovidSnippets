@@ -6,13 +6,25 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-library(tidyverse)
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	fig.retina = 2,
+	dpi = 150,
+	fig.width = 7,
+	fig.height = 5
+)
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
 library(rvest)
 library(mountainmathHelpers)
 library(sf)
 library(PROJ)
 library(cancensus)
+options("cancensus.cache_path"=here::here("data"))
 
 extract_table_data <- function(node){
     h <- node %>% rvest::html_nodes("thead th") %>% rvest::html_text()
@@ -48,7 +60,7 @@ get_data_for_page <- function(p=1){
   
   data <- c$records %>% as_tibble()
   
-  print(paste0("Got data for page ",c$current_page," of ",c$total_pages))
+  #print(paste0("Got data for page ",c$current_page," of ",c$total_pages))
 
   
   attr(data,"total_pages") <- c$total_pages
@@ -57,9 +69,9 @@ get_data_for_page <- function(p=1){
 
 clean_data <- function(d){
   tibble(Date=as.Date(d$field_16,format="%m/%d/%Y"),
-           Name=d$field_13_raw %>% map(function(f)f$identifier) %>% as.character,
-           `Health Authority`=d$field_26_raw %>% map(function(f)f$identifier) %>% as.character,
-           Verification=d$field_14_raw %>% map(function(f)f$identifier) %>% as.character,
+           Name=d$field_13_raw %>% lapply(function(f)f$identifier) %>% as.character,
+           `Health Authority`=d$field_26_raw %>% lapply(function(f)f$identifier) %>% as.character,
+           Verification=d$field_14_raw %>% lapply(function(f)f$identifier) %>% as.character,
            `Exposure dates`=d$field_15,
            `Exposure count`=d$field_25) %>%
       bind_cols(d$field_19_raw %>% as_tibble) %>%
@@ -85,8 +97,11 @@ get_all_data <- function(){
 data <- get_all_data()
 ```
 
+In BC we don't have good data on community level COVID cases. But we can use school exposures as a proxy. The [BC School Covid Tracker project](https://bcschoolcovidtracker.knack.com/bc-school-covid-tracker#home/) has been keeping count of school exposures and meticulously documenting and geocoding the data. That makes is easy for use to create a heatmap of school exposures.
 
-## Heat map
+However, this data is not normalized by population, so it should be viewd in context of the school aged (5-17yo) population further down.
+
+## School Exposure Heat map
 
 ```{r}
 bb<-metro_van_bbox()
@@ -126,7 +141,9 @@ ggplot(m) +
        title="Geographic distribution of school exposure notifications",
        caption="MountainMath, Data: BC School Covid Tracker")
 ```
+
 ## Children density heat map for comparison
+
 ```{r}
 d <- get_census("CA16",regions=list(CMA="59933"),level="DA",geo_format = "sf",vectors=c("v_CA16_25","v_CA16_43","v_CA16_67","v_CA16_70","v_CA16_73"),labels="short") %>%
   mutate(children=select(.,matches("v_")) %>% st_drop_geometry()%>% rowSums(na.rm=TRUE)) 
@@ -159,52 +176,4 @@ ggplot(m) +
 
 ```
 
-
-## FSA based data
-```{r}
-data %>%
-  mutate(FSA=substr(zip,1,3)) %>%
-  group_by(FSA) %>%
-  mutate(n=n()) %>%
-  filter(n>5) %>%
-  ggplot(aes(x=reorder(FSA,n))) +
-  geom_bar() +
-  coord_flip()
-```
-
-```{r}
-geos <- get_2016_census_fsa_geos() %>%
-  filter(PRUID=="59") %>%
-  rmapshaper::ms_simplify(0.2) %>% 
-  sf::st_transform(4326)
-cd <- get_2016_census_fsa_data() %>%
-  select(FSA=`GEO_CODE (POR)`,
-         Characteristic=`DIM: Profile of Forward Sortation Areas (2247)`,
-         ID=`Member ID: Profile of Forward Sortation Areas (2247)`,
-         Total=`Dim: Sex (3): Member ID: [1]: Total - Sex`) %>%
-  mutate(Total=as.numeric(Total))
-
-cdd <- cd %>% 
-  filter(Characteristic %in% c("5 to 9 years","10 to 14 years")) %>%
-  group_by(FSA) %>% 
-  summarise(Total=sum(Total),.groups="drop")
-```
-
-```{r}
-plot_data <- geos %>%
-  filter(PRUID=="59") %>%
-  select(FSA=CFSAUID) %>%
-  left_join(cdd,by="FSA") %>%
-  left_join(data %>%
-              mutate(FSA=substr(zip %>% gsub(" ","",.),1,3)) %>%
-              group_by(FSA) %>% 
-              summarize(n=n(),.groups="drop"),by="FSA") %>%
-  mutate(rate=n/Total*1000)
-  
-ggplot(plot_data,aes(fill=rate)) +
-  geom_sf() +
-  scale_fill_viridis_c(option="magma") +
-  coord_bbox(metro_van_bbox()) +
-  labs(title="School exposures per 1000 children aged 5-14",fill=NULL)
-```
 
