@@ -1,6 +1,6 @@
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "1 0 * * *"
     
 name: Render BC Trends hourly
 

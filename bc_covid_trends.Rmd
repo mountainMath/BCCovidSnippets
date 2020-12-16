@@ -215,7 +215,7 @@ data <- get_british_columbia_hr_case_data() %>%
   mutate(Cases_0=Cases,Trend_0=Trend,Cleand_0=Cleaned) %>%
   mutate_at(c("Cases","Cleaned","Trend"),function(d)d/.$Population*100000)
 
-label_y <- max(data$Cases) * 0.9
+label_y <- max(data$Cases) * 0.9 
 
 data %>% 
   filter(!(HR %in% c("All","Unknown"))) %>%
