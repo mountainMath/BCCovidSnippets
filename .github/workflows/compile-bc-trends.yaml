@@ -4,9 +4,7 @@ on:
       - bc_covid_trends.Rmd
       - two_covid_canadas.Rmd
       - open_table.Rmd
-  schedule:
-    - cron: "0 1 * * 2-6"
-    
+
 name: Render BC Trends
 
 jobs:
