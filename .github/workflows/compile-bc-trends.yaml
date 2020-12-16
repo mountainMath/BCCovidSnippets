@@ -38,6 +38,7 @@ jobs:
           install.packages("rvest")
           install.packages("sf")
           install.packages("PROJ")
+          install.packages("geojsonsf")
           remotes::install_github("mountainMath/mountainmathHelpers")
           remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
