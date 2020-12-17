@@ -52,6 +52,9 @@ jobs:
       - name: Render BC School Tracker
         run: |
           Rscript -e 'rmarkdown::render("bc_school_tracker.Rmd")'
+      - name: Render Vaccination Tracker
+        run: |
+          Rscript -e 'rmarkdown::render("vaccination_tracker.Rmd")'
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"
@@ -61,4 +64,5 @@ jobs:
           git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git commit open_table.md open_table_files -m 'Re-build open_table.Rmd' || echo "No changes to commit"
           git commit bc_school_tracker.md bc_school_tracker_files -m 'Re-build bc_school_tracker.Rmd' || echo "No changes to commit"
+          git commit vaccination_tracker.md vaccination_tracker_files -m 'Re-build vaccination_tracker.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
