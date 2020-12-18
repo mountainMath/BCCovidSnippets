@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 17 December, 2020 - 10:50
+Last updated at 17 December, 2020 - 17:31
 
 Vaccinations have arrived in Canada, and the [COVID-19 Tracker
 Canada](https://covid19tracker.ca) is collecting data on vaccinations.
@@ -30,7 +30,7 @@ vaccine.
     localized outbreaks though, especially given the overdispersed
     nature of COVID-19, so it will be important to have some level of
     distancing in place even past the herd immunity threshold. The goal
-    of this apprach is CovidZero, with vaccines protecting vulnerable
+    of this approach is CovidZero, with vaccines protecting vulnerable
     populations, as well as helping to get to Zero via decreasing the
     pool of susceptible people.
 2.  The second approach would be to not focus on saving lives and
@@ -49,7 +49,7 @@ approach being the only reasonable choice.
 
 Glossing over reporting details, we can track how vaccines are aiding a
 CovidZero strategy (or how vaccines can help open up while keeping
-deaths and morbities roughly constant if that’s your jam).
+deaths and morbidities roughly constant if that’s your jam).
 
 <img src="vaccination_tracker_files/figure-gfm/vaccination-status-1.png" width="1050" />
 
