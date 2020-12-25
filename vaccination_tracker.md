@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 23 December, 2020 - 17:59
+Last updated at 24 December, 2020 - 17:52
 
 Vaccinations have arrived in Canada, and the [COVID-19 Tracker
 Canada](https://covid19tracker.ca) is collecting data on vaccinations.
