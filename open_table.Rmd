@@ -33,7 +33,7 @@ open_table <- get_open_table_data("fullbook") %>%
   mutate(value=value/100) %>%
   rename(Name=name)
 
-open_table %>% 
+g <- open_table %>% 
   filter(grepl("Vancouver|Toronto|Calgary|Montr|Edmon|Otta",Name)) %>%
   group_by(Name) %>%
   arrange(Date) %>%
@@ -53,6 +53,8 @@ open_table %>%
         legend.position="bottom") +
   labs(title="OpenTable seated diners restaurant reservations (STL trend lines)",
        x=NULL,y="Year over year change",colour=NULL,caption="MountainMath, Data: OpenTable")
+#graph_to_s3(g,"bccovid","open_table_canada_cities.png")
+g
 ```
 
 
