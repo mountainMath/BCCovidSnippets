@@ -1,7 +1,7 @@
 Open Table
 ================
 Jens von Bergmann
-Last updated at 17 December, 2020 - 10:49
+Last updated at 04 January, 2021 - 18:10
 
 These graphs show Open Table year over year change in reservations for
 seated diners and share of restaurants that accept reservations from the
