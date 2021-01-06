@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 04 January, 2021 - 18:11
+Last updated at 05 January, 2021 - 11:15
 
 Vaccinations have arrived in Canada, and the [COVID-19 Tracker
 Canada](https://covid19tracker.ca) is collecting data on vaccinations.
@@ -11,9 +11,10 @@ it is not clear how vaccination data will get reported.
 The first round of vaccines Canada got is the mRNA vaccine from BioNTech
 that requires two doses, spaced 21 days apart, to be fully (\~95%)
 effective, with the Moderna vaccine coming soon with similar
-requirements. Moreover, people are only considered vaccinated one week
-after having received the second vaccine. So it takes about a month from
-getting the first shot until a person is considered vaccinated.
+requirements with the second dose administered after 28 days. Moreover,
+people are only considered vaccinated one week after having received the
+second vaccine. So it takes about a month from getting the first shot
+until a person is considered vaccinated.
 
 ## How to use the vaccine
 
