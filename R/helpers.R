@@ -71,9 +71,9 @@ clean_missing_weekend_data <- function(tl){
 }
 
 
-graph_to_s3 <- function(graph,s3_bucket,s3_path,content_type="image/png"){
+graph_to_s3 <- function(graph,s3_bucket,s3_path,content_type="image/png",width=7,height=7){
   tmp <- tempfile(fileext = ".png")
-  ggsave(tmp,plot=graph)
+  ggsave(tmp,plot=graph,width=width,height=height)
   mountainmathHelpers::file_to_s3(tmp,s3_bucket,s3_path,content_type)
 }
 
