@@ -19,7 +19,7 @@ library(dplyr)
 library(ggplot2)
 library(CanCovidData)
 library(cansim)
-source(here("R/helpers.R"))
+source(here::here("R/helpers.R"))
 
 ```
 

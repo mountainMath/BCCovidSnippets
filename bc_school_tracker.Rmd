@@ -24,7 +24,7 @@ library(mountainmathHelpers)
 library(sf)
 library(PROJ)
 library(cancensus)
-source(here("R/helpers.R"))
+source(here::here("R/helpers.R"))
 
 options("cancensus.cache_path"=here::here("data"))
 
