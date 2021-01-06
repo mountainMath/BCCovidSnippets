@@ -121,10 +121,9 @@ plot_data %>%
        color=NULL,
        caption="MountainMath, Data: PHAC")
 
-#ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
-#ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
-
+graph_to_s3(g,"bccovid","two-covid-canadas.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/two-covid-canadas.png)
 
 For better comparison we can plot the Atlantic provinces and the other provinces on different scales.
 
@@ -150,7 +149,7 @@ plot_data <- covid_data %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
   mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces")) 
 
-plot_data %>%
+g <- plot_data %>%
   filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
   filter(!(shortProvince %in% c("NT","YT","NU"))) %>%
   #filter(Date>=as.Date("2020-11-01")) %>%
@@ -180,10 +179,9 @@ plot_data %>%
        color=NULL,
        caption="MountainMath, Data: PHAC")
 
-#ggsave("~/Desktop/two_covid_canadas.png",width=7,height=5)
-#ggsave("~/Desktop/two_covid_canadas.svg",width=7,height=5)
-
+graph_to_s3(g,"bccovid","two-covid-canadas-overview.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 
+![](https://bccovid.s3.ca-central-1.amazonaws.com/two-covid-canadas-overview.png)
 
 
