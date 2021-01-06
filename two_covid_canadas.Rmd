@@ -103,7 +103,7 @@ plot_data <- covid_data %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
   mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces"))
 
-plot_data %>%
+g <- plot_data %>%
   filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
   filter(!(shortProvince %in% c("NT","YT","NU"))) %>%
   #filter(Date>=as.Date("2020-11-01")) %>%
