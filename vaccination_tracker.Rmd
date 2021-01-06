@@ -19,6 +19,8 @@ library(dplyr)
 library(ggplot2)
 library(CanCovidData)
 library(cansim)
+source(here("R/helpers.R"))
+
 ```
 
 Vaccinations have arrived in Canada, and the [COVID-19 Tracker Canada](https://covid19tracker.ca) is collecting data on vaccinations. At this point we don't have good reporting standards of vaccinations and it is not clear how vaccination data will get reported.

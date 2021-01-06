@@ -24,6 +24,8 @@ library(mountainmathHelpers)
 library(sf)
 library(PROJ)
 library(cancensus)
+source(here("R/helpers.R"))
+
 options("cancensus.cache_path"=here::here("data"))
 
 extract_table_data <- function(node){
