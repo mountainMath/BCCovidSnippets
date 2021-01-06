@@ -7,13 +7,13 @@ output: rmarkdown::github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-	echo = FALSE,
+	fig.height = 5,
+	fig.retina = 2,
+	fig.width = 7,
 	message = FALSE,
 	warning = FALSE,
-	fig.retina = 2,
 	dpi = 150,
-	fig.width = 7,
-	fig.height = 5
+	include = FALSE
 )
 library(ggplot2)
 library(dplyr)
