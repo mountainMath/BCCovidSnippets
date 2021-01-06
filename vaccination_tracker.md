@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 05 January, 2021 - 17:22
+Last updated at 05 January, 2021 - 19:26
 
 Vaccinations have arrived in Canada, and the [COVID-19 Tracker
 Canada](https://covid19tracker.ca) is collecting data on vaccinations.
@@ -52,7 +52,7 @@ Glossing over reporting details, we can track how vaccines are aiding a
 CovidZero strategy (or how vaccines can help open up while keeping
 deaths and morbidities roughly constant if that’s your jam).
 
-<img src="vaccination_tracker_files/figure-gfm/vaccination-status-1.png" width="1050" />
+![](https://bccovid.s3.ca-central-1.amazonaws.com/vaccination-status.png)
 
 If your goal is to use vaccinations to reduce deaths and morbidity, the
 share of the population who received vaccinations gives a rough
