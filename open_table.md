@@ -1,7 +1,7 @@
 Open Table
 ================
 Jens von Bergmann
-Last updated at 05 January, 2021 - 11:14
+Last updated at 05 January, 2021 - 17:21
 
 These graphs show Open Table year over year change in reservations for
 seated diners and share of restaurants that accept reservations from the
@@ -12,8 +12,14 @@ purposes](https://github.com/mountainMath/BCCovidSnippets/blob/main/open_table.R
 
 ## Seated diners from online, phone, and walk-in reservations
 
-<img src="open_table_files/figure-gfm/open-table-canada-cities-1.png" width="1050" />
+    ## [1] TRUE
+
+![](https://bccovid.s3.ca-central-1.amazonaws.com/open_table_canada_cities.png)
 
 ## Restaurants open for reservations
 
 <img src="open_table_files/figure-gfm/open-table-canada-cities-2-1.png" width="1050" />
+
+    ## [1] TRUE
+
+![](https://bccovid.s3.ca-central-1.amazonaws.com/open_table_canada_cities-2.png)
