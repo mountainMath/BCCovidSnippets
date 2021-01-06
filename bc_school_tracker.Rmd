@@ -141,7 +141,7 @@ g <- ggplot(m) +
        title="Geographic distribution of school exposure notifications",
        caption="MountainMath, Data: BC School Covid Tracker")
 
-graph_to_s3(g,"bccovid","school-tracker-schools.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","school-tracker-schools.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/school-tracker-schools.png)
@@ -179,7 +179,7 @@ g <- ggplot(m) +
        title="Geographic distribution of children 5-17yo",
        caption="MountainMath, StatCan Census 2016")
 
-graph_to_s3(g,"bccovid","school-tracker-children.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","school-tracker-children.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/school-tracker-children.png)

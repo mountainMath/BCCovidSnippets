@@ -121,7 +121,7 @@ plot_data %>%
        color=NULL,
        caption="MountainMath, Data: PHAC")
 
-graph_to_s3(g,"bccovid","two-covid-canadas.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","two-covid-canadas.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/two-covid-canadas.png)
 
@@ -179,7 +179,7 @@ g <- plot_data %>%
        color=NULL,
        caption="MountainMath, Data: PHAC")
 
-graph_to_s3(g,"bccovid","two-covid-canadas-overview.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","two-covid-canadas-overview.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/two-covid-canadas-overview.png)

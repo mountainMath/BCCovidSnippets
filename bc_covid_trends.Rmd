@@ -98,7 +98,7 @@ g <- data %>%
        x=NULL,y=NULL,color=NULL,caption="MountainMath, Data: BCCDC") +
   theme(plot.subtitle = element_markdown())
 
-graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/bc-trend.png)
 
@@ -147,7 +147,7 @@ g <- data %>%
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown()) 
 
-graph_to_s3(g,"bccovid","main-ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","main-ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/main-ha-trend.png)
 
@@ -198,7 +198,7 @@ g <- data %>%
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown())
 
-graph_to_s3(g,"bccovid","ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/ha-trend.png)
 
@@ -250,7 +250,7 @@ g <- data %>%
   theme(plot.subtitle = element_markdown()) +
   expand_limits(x=max(data$Date)+40)
 
-graph_to_s3(g,"bccovid","hr-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","hr-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/hr-trend.png)
 
@@ -295,7 +295,7 @@ g <- pd %>%
        x=NULL,y="Share of cases",
        color=NULL,caption="MountainMath, Data: BCCDC")
 
-graph_to_s3(g,"bccovid","hr-check.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+r<-graph_to_s3(g,"bccovid","hr-check.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/hr-check.png)
 
