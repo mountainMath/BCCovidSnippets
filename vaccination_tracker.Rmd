@@ -61,7 +61,7 @@ vaccination_data <- provinces %>%
 
 
 ```{r vaccination-status}
-vaccination_data %>%
+g <- vaccination_data %>%
   filter(total_vaccinations>0) %>%
   ggplot(aes(x=Date,y=Share)) +
   geom_bar(stat="identity",fill="purple") +
@@ -71,7 +71,10 @@ vaccination_data %>%
   labs(title="COVID-19 vaccinations",y="Share of population who received the first dose",
        x=NULL,
        caption="MountainMath, Data: COVID-19 Tracker Canada")
+
+graph_to_s3(g,"bccovid","vaccination-status.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/vaccination-status.png)
 
 If your goal is to use vaccinations to reduce deaths and morbidity, the share of the population who received vaccinations gives a rough indicator of the reduction a month from now when the vaccines take full effect. Since vaccinations are initially focused on vulnerable populations, the effect will be significantly higher than the shown percentage.
 

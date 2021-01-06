@@ -81,7 +81,7 @@ data <- get_british_columbia_case_data() %>%
 
 label_y <- max(data$Cases) * 0.9
 
-data %>% 
+g <- data %>% 
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
   #filter(Date>=as.Date("2020-11-01")) %>%
   ggplot(aes(x = Date, y = count)) + 
@@ -97,7 +97,10 @@ data %>%
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y=NULL,color=NULL,caption="MountainMath, Data: BCCDC") +
   theme(plot.subtitle = element_markdown())
+
+graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/bc-trend.png)
 
 
 ## Main Health Authority Trends
@@ -126,7 +129,7 @@ data <- get_british_columbia_case_data() %>%
 
 label_y <- max(data$Cases) * 0.9
 
-data %>% 
+g <- data %>% 
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.25,aes(color=HA,group=HA)) +
@@ -143,7 +146,10 @@ data %>%
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown()) 
+
+graph_to_s3(g,"bccovid","main-ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/main-ha-trend.png)
 
 ## Health Authority Trends
 
@@ -174,7 +180,7 @@ data <- get_british_columbia_case_data() %>%
 
 label_y <- max(data$Cases) * 0.9
 
-data %>% 
+g <- data %>% 
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.25,aes(color=HA,group=HA)) +
@@ -191,7 +197,10 @@ data %>%
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown())
+
+graph_to_s3(g,"bccovid","ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/ha-trend.png)
 
 ## Health Region Trends
 
@@ -217,7 +226,7 @@ data <- get_british_columbia_hr_case_data() %>%
 
 label_y <- max(data$Cases) * 0.9 
 
-data %>% 
+g <- data %>% 
   filter(!(HR %in% c("All","Unknown"))) %>%
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
   ggplot(aes(x = Date, y = count)) + 
@@ -240,14 +249,16 @@ data %>%
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown()) +
   expand_limits(x=max(data$Date)+40)
+
+graph_to_s3(g,"bccovid","hr-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/hr-trend.png)
 
 
 ### Health Region geocoding problems
 Health Authorities may lag in geocoding cases to Health Region geographies, which makes the above Health Region level graph difficult to interpret. This graph shows the share of cases in each Health Authority that were geocoded to Health Region geographies.
 
 ```{r hr-check}
-
 data_u <- get_british_columbia_hr_case_data() %>%
   rename(HA=`Health Authority`,HR=`Health Region`) %>%
   filter(HA != "Out of Canada") %>%
@@ -267,7 +278,7 @@ pd <- data_u %>%
   mutate(Cases2=ifelse(HR=="All",Cases-HR_sum,Cases)) %>%
   mutate(share=Cases/HR_sum)
 
-pd %>% 
+g <- pd %>% 
   filter(HR=="Unknown") %>%
   filter(Date>=as.Date("2020-07-01")) %>%
   group_by(HA) %>%
@@ -283,5 +294,8 @@ pd %>%
   labs(title="Cases with missing Health Region level geocoding",
        x=NULL,y="Share of cases",
        color=NULL,caption="MountainMath, Data: BCCDC")
+
+graph_to_s3(g,"bccovid","hr-check.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+![](https://bccovid.s3.ca-central-1.amazonaws.com/hr-check.png)
 
