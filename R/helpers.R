@@ -75,8 +75,6 @@ graph_to_s3 <- function(graph,s3_bucket,s3_path,content_type="image/png",width=7
   tmp <- tempfile(fileext = ".png")
   ggsave(tmp,plot=graph,width=width,height=height,dpi = dpi)
   
-  t=timestamp()
-  
   result <- aws.s3::put_object(file=tmp,
                                object=s3_path,
                                bucket=s3_bucket,
@@ -84,7 +82,7 @@ graph_to_s3 <- function(graph,s3_bucket,s3_path,content_type="image/png",width=7
                                acl="public-read",
                                headers=list("Content-Type"=content_type,
                                             "Cache-Control"="no-cache",
-                                            "Etag"=digest::digest(t)))
+                                            "Etag"=digest::digest(Sys.time())))
   
 }
 
