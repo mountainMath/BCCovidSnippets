@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 06 January, 2021 - 19:48
+Last updated at 06 January, 2021 - 22:45
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -12,7 +12,7 @@ repo](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.
 
 ## Overall BC Trend
 
-![](https://bccovid.s3.ca-central-1.amazonaws.com/bc-trend.png)
+<img src="https://bccovid.s3.ca-central-1.amazonaws.com/bc-trend.png" />
 
 ## Main Health Authority Trends
 
