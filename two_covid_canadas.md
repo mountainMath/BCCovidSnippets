@@ -1,7 +1,7 @@
 Two Covid Canadas
 ================
 Jens von Bergmann
-Last updated at 06 January, 2021 - 18:20
+Last updated at 06 January, 2021 - 19:21
 
 This notebook shows the confirmed COVID cases for Canadian provinces.
 The code for this notebook is [available for anyone to adapt and use for
@@ -11,9 +11,13 @@ purposes](https://github.com/mountainMath/BCCovidSnippets/blob/main/two_covid_ca
 The Atlantic provinces have pursued very different COVID-19 strategies
 from the other provinces and have seen very different outcomes.
 
+    ## ##------ Thu Jan  7 03:21:13 2021 ------##
+
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/two-covid-canadas.png)
 
 For better comparison we can plot the Atlantic provinces and the other
 provinces on different scales.
+
+    ## ##------ Thu Jan  7 03:21:14 2021 ------##
 
 ![](https://bccovid.s3.ca-central-1.amazonaws.com/two-covid-canadas-overview.png)
