@@ -74,6 +74,17 @@ clean_missing_weekend_data <- function(tl){
 graph_to_s3 <- function(graph,s3_bucket,s3_path,content_type="image/png",width=7,height=7,dpi = 150){
   tmp <- tempfile(fileext = ".png")
   ggsave(tmp,plot=graph,width=width,height=height,dpi = dpi)
-  mountainmathHelpers::file_to_s3(tmp,s3_bucket,s3_path,content_type)
+  
+  t=timestamp()
+  
+  result <- aws.s3::put_object(file=tmp,
+                               object=s3_path,
+                               bucket=s3_bucket,
+                               multipart = TRUE,
+                               acl="public-read",
+                               headers=list("Content-Type"=content_type,
+                                            "Cache-Control"="no-cache",
+                                            "Etag"=digest::digest(t)))
+  
 }
 
