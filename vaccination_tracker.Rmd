@@ -74,9 +74,9 @@ g <- vaccination_data %>%
        x=NULL,
        caption="MountainMath, Data: COVID-19 Tracker Canada")
 
-r<-graph_to_s3(g,"bccovid","vaccination-status.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+g
+#r<-graph_to_s3(g,"bccovid","vaccination-status.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
-![](https://bccovid.s3.ca-central-1.amazonaws.com/vaccination-status.png)
 
 If your goal is to use vaccinations to reduce deaths and morbidity, the share of the population who received vaccinations gives a rough indicator of the reduction a month from now when the vaccines take full effect. Since vaccinations are initially focused on vulnerable populations, the effect will be significantly higher than the shown percentage.
 

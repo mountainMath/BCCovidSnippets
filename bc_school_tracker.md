@@ -1,7 +1,7 @@
 BC School Tracker
 ================
 Jens von Bergmann
-Last updated at 06 January, 2021 - 19:49
+Last updated at 07 January, 2021 - 13:09
 
 In BC we don’t have good data on community level COVID cases. But we
 can, somewhat cynically, use school exposures as a proxy. The [BC School
@@ -16,8 +16,8 @@ viewd in context of the school aged (5-17yo) population further down.
 
 ## School Exposure Heat Map
 
-![](https://bccovid.s3.ca-central-1.amazonaws.com/school-tracker-schools.png)
+<img src="bc_school_tracker_files/figure-gfm/school-tracker-schools-1.png" width="1050" />
 
 ## Children density heat map for comparison
 
-![](https://bccovid.s3.ca-central-1.amazonaws.com/school-tracker-children.png)
+<img src="bc_school_tracker_files/figure-gfm/school-tracker-children-1.png" width="1050" />

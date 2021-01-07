@@ -7,13 +7,13 @@ output: rmarkdown::github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
+	echo = FALSE,
 	fig.height = 5,
 	fig.retina = 2,
 	fig.width = 7,
 	message = FALSE,
 	warning = FALSE,
-	dpi = 150,
-	include = FALSE
+	dpi = 150
 )
 library(ggplot2)
 library(dplyr)
@@ -107,7 +107,7 @@ However, this data is not normalized by population, so it should be viewd in con
 
 ```{r school-tracker-schools}
 bb<-metro_van_bbox()
-m <- cancensus::get_census("CA16",regions=list(CMA="59933"),geo_format = "sf",level="CSD")
+m <- cancensus::get_census("CA16",regions=list(CMA="59933"),geo_format = "sf",level="CSD",quiet = TRUE)
 
 
 school_data <- data %>%
@@ -143,16 +143,16 @@ g <- ggplot(m) +
        title="Geographic distribution of school exposure notifications",
        caption="MountainMath, Data: BC School Covid Tracker")
 
-r<-graph_to_s3(g,"bccovid","school-tracker-schools.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+g
+#r<-graph_to_s3(g,"bccovid","school-tracker-schools.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 
 ```
-![](https://bccovid.s3.ca-central-1.amazonaws.com/school-tracker-schools.png)
 
 
 ## Children density heat map for comparison
 
 ```{r school-tracker-children}
-d <- get_census("CA16",regions=list(CMA="59933"),level="DA",geo_format = "sf",vectors=c("v_CA16_25","v_CA16_43","v_CA16_67","v_CA16_70","v_CA16_73"),labels="short") %>%
+d <- get_census("CA16",regions=list(CMA="59933"),level="DA",geo_format = "sf",vectors=c("v_CA16_25","v_CA16_43","v_CA16_67","v_CA16_70","v_CA16_73"),labels="short", quiet=TRUE) %>%
   mutate(children=select(.,matches("v_")) %>% st_drop_geometry()%>% rowSums(na.rm=TRUE)) 
 
 dd <- d %>% 
@@ -181,9 +181,8 @@ g <- ggplot(m) +
        title="Geographic distribution of children 5-17yo",
        caption="MountainMath, StatCan Census 2016")
 
-r<-graph_to_s3(g,"bccovid","school-tracker-children.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
-
+g
+#r<-graph_to_s3(g,"bccovid","school-tracker-children.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
-![](https://bccovid.s3.ca-central-1.amazonaws.com/school-tracker-children.png)
 
 
