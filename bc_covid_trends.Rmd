@@ -73,7 +73,7 @@ This notebook is intended to give a daily overview over BC Covid Trends. It util
 data <- get_british_columbia_case_data() %>%
   #filter(`Health Authority` %in% c("Vancouver Coastal","Fraser")) %>%
   count(Date=`Reported Date`,name="Cases") %>%
-  filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
   mutate(Trend=extract_stl_trend_m(Cases),
          Seasonal=extract_stl_seasonal_m(Cases)) %>%
   mutate(Cleaned=Cases/Seasonal) %>%
@@ -112,7 +112,7 @@ data <- get_british_columbia_case_data() %>%
   mutate(HA=ifelse(`Health Authority` %in% c("Fraser","Vancouver Coastal"),`Health Authority`,"Rest of BC")) %>%
   #mutate(HA=`Health Authority`) %>%
   count(Date=`Reported Date`,HA, name="Cases") %>%
-  filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
   group_by(HA) %>%
   mutate(Trend=extract_stl_trend_m(Cases),
          Seasonal=extract_stl_seasonal_m(Cases)) %>%
@@ -162,7 +162,7 @@ data <- get_british_columbia_case_data() %>%
   #mutate(HA=ifelse(`Health Authority` %in% c("Fraser","Vancouver Coastal"),`Health Authority`,"Rest of BC")) %>%
   #mutate(HA=`Health Authority`) %>%
   count(Date=`Reported Date`,HA, name="Cases") %>%
-  filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
   #expand(Date=(.)$Date %>% unique,HA,Cases) %>%
   #mutate(Cases=coalesce(Cases,0)) %>%
   group_by(HA) %>%
@@ -210,7 +210,7 @@ pop_data <- read_csv(here("data/hr_pop.csv")) %>%
 data <- get_british_columbia_hr_case_data() %>%
   rename(HA=`Health Authority`,HR=`Health Region`) %>%
   filter(!(HA %in% c("Out of Canada","All")),!(HR %in% c("All","Unknown"))) %>%
-  filter(Date<max(Date),Date>=as.Date("2020-03-01")) %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
   group_by(HR,HA) %>%
   mutate(Trend=extract_stl_trend_m(Cases+1),
          Seasonal=extract_stl_seasonal_m(Cases+1)) %>%
@@ -260,8 +260,7 @@ Health Authorities may lag in geocoding cases to Health Region geographies, whic
 ```{r hr-check}
 data_u <- get_british_columbia_hr_case_data() %>%
   rename(HA=`Health Authority`,HR=`Health Region`) %>%
-  filter(HA != "Out of Canada") %>%
-  filter(Date<max(Date))
+  filter(HA != "Out of Canada") 
 
 pd <- data_u %>%
   filter(HA!="All") %>%
