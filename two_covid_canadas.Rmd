@@ -80,7 +80,7 @@ plot_data %>%
        caption="MountainMath, Data: PHAC")
 ```
 
-The Atlantic provinces have pursued very different COVID-19 strategies from the other provinces and have seen very different outcomes.
+The Atlantic provinces have pursued very different COVID-19 strategies from the other provinces and have seen very different outcomes. The 7-day incidence, that is the cumulative number of cases over the past 7 days per 100,000 population, has been used by many jurisdictions as a key metric to trigger policy interventions.
 
 ```{r two-covid-canadas-overview}
 successful_provinces <- c("NL","NT","NS","YT","PE","NB")
@@ -147,6 +147,7 @@ plot_data <- covid_data %>%
   arrange(Date) %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
+  #mutate(incidence=zoo::rollsum(Cases,7,align="center",fill=as.numeric(NA))/Population*100000) %>%
   mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces")) 
 
 g <- plot_data %>%
@@ -183,5 +184,65 @@ g
 #r<-graph_to_s3(g,"bccovid","two-covid-canadas-overview.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 
+## Trend lines
+Sometimes it is useful to get a clearer view on trend lines. Rolling 7-day sums (like above) or rolling averages (as often emplyed) are a problematic way to represent trend lines as the lag actual trends by 3 days. 
+
+A fairly simple trend line model like a (multiplicative) STL decomposition can ectract cleaner trend lines that also cover the most recent 3 days of data, at the expense of a bit of added volatility at the very end of the trend line where the trend line may shift slightly when new data comes in. 
 
 
+```{r two-covid-canadas-trend}
+successful_provinces <- c("NL","NT","NS","YT","PE","NB")
+
+province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
+                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
+
+plot_data <- covid_data %>% 
+  filter(Province!="Repatriated") %>%
+  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
+  complete(Date,Province) %>%
+  mutate(Cases=replace_na(Cases,0),
+         Deaths=replace_na(Deaths,0)) %>%
+  left_join(pop_data,by="Province") %>%
+  group_by(Province) %>%
+  arrange(desc(Date)) %>%
+  filter(cumsum(Cases)>0) %>% # remove trailing zeros
+  arrange(Date) %>%
+  mutate(Cases=clean_missing_weekend_data(Cases)) %>%
+  mutate(Cases=pmax(0,Cases)) %>%
+  mutate(trend=(extract_stl_trend_m(Cases+1)-1)/Population*100000) %>%
+  mutate(incidence=zoo::rollsum(Cases,7,align="center",fill=as.numeric(NA))/Population*100000) %>%
+  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces")) 
+
+g <- plot_data %>%
+  filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
+  filter(!(shortProvince %in% c("NT","YT","NU"))) %>%
+  #filter(Date>=as.Date("2020-11-01")) %>%
+  ggplot(aes(x=Date,y=trend,group=shortProvince)) +
+  geom_line(data=~filter(.,shortProvince %in% successful_provinces),
+            aes(color=shortProvince)) +
+  geom_point(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
+            aes(color=shortProvince)) +
+  ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
+            aes(label=shortProvince,color=shortProvince),hjust=-1.2,direction="y",
+            segment.colour="darkgrey") +
+  geom_line(data=~filter(.,!(shortProvince %in% successful_provinces)),
+            aes(color=shortProvince)) +
+  geom_point(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
+            aes(color=shortProvince)) +
+  ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
+            aes(color=shortProvince,label=shortProvince),hjust=-1.2,direction="y",
+            segment.colour="darkgrey") +
+  #scale_color_brewer(palette = "Dark2",guide=FALSE) +
+  scale_color_manual(values=province_colours,guide=FALSE) +
+  facet_wrap("type",ncol=1,scales ="free_y") +
+  expand_limits(x=max(plot_data$Date)+7) +
+  theme_bw() +
+  scale_x_date(breaks="months",labels=function(d)strftime(d,"%b")) +
+  labs(title="Two COVID Canadas (STL trend lines)",
+       x=NULL,y="Daily cases per 100k population",
+       color=NULL,
+       caption="MountainMath, Data: PHAC")
+
+g
+#r<-graph_to_s3(g,"bccovid","two-covid-canadas-overview.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+```
