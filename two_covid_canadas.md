@@ -1,7 +1,7 @@
 Two Covid Canadas
 ================
 Jens von Bergmann
-Last updated at 20 January, 2021 - 09:53
+Last updated at 20 January, 2021 - 10:15
 
 This notebook shows the confirmed COVID cases for Canadian provinces.
 The code for this notebook is [available for anyone to adapt and use for
@@ -29,7 +29,7 @@ problematic way to represent trend lines as the lag actual trends by 3
 days.
 
 A fairly simple trend line model like a (multiplicative) STL
-decomposition can ectract cleaner trend lines that also cover the most
+decomposition can extract cleaner trend lines that also cover the most
 recent 3 days of data, at the expense of a bit of added volatility at
 the very end of the trend line where the trend line may shift slightly
 when new data comes in.
