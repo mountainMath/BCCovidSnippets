@@ -210,7 +210,6 @@ plot_data <- covid_data %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(Cases=pmax(0,Cases)) %>%
   mutate(trend=(extract_stl_trend_m(Cases+1)-1)/Population*100000) %>%
-  mutate(incidence=zoo::rollsum(Cases,7,align="center",fill=as.numeric(NA))/Population*100000) %>%
   mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces")) 
 
 g <- plot_data %>%
