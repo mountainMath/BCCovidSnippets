@@ -187,7 +187,7 @@ g
 ## Trend lines
 Sometimes it is useful to get a clearer view on trend lines. Rolling 7-day sums (like above) or rolling averages (as often emplyed) are a problematic way to represent trend lines as the lag actual trends by 3 days. 
 
-A fairly simple trend line model like a (multiplicative) STL decomposition can ectract cleaner trend lines that also cover the most recent 3 days of data, at the expense of a bit of added volatility at the very end of the trend line where the trend line may shift slightly when new data comes in. 
+A fairly simple trend line model like a (multiplicative) STL decomposition can extract cleaner trend lines that also cover the most recent 3 days of data, at the expense of a bit of added volatility at the very end of the trend line where the trend line may shift slightly when new data comes in.
 
 
 ```{r two-covid-canadas-trend}
