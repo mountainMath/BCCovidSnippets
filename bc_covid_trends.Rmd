@@ -38,19 +38,20 @@ major_reopenings <- c("2020-05-19"="Phase 2","2020-06-24"="Phase 3")
 minor_reopenings <- c("2020-05-14","2020-06-01","2020-06-08",
                       "2020-06-30","2020-07-02","2020-09-10","2020-12-15")
 
-restriction_markers <- list(
+restriction_markers <- function(major_size=1,minor_size=0.5){
+  list(
     geom_vline(xintercept = as.Date(minor_reopenings),
-               linetype="dashed",color="darkgreen",size=0.5),
-    geom_vline(xintercept = as.Date(names(major_reopenings)),linetype="dashed",color="darkgreen",size=1),
-    geom_vline(xintercept = as.Date(names(major_restrictions)),linetype="dashed",color="brown",size=1),
+               linetype="dashed",color="darkgreen",size=minor_size),
+    geom_vline(xintercept = as.Date(names(major_reopenings)),linetype="dashed",color="darkgreen",size=major_size),
+    geom_vline(xintercept = as.Date(names(major_restrictions)),linetype="dashed",color="brown",size=major_size),
     geom_vline(xintercept = as.Date(minor_restrictions),
-               linetype="dashed",color="brown",size=0.5)
-)
+               linetype="dashed",color="brown",size=minor_size)
+)}
 
 full_labels <- function(label_y,
                         major_restriction_labels = c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings"),
                         major_restrictions_y = c(1,0.15)){
-  c(restriction_markers,list(
+  c(restriction_markers(),list(
     geom_label(data = tibble(Date=as.Date(names(major_reopenings)),
                              count=c(label_y,label_y),
                              label=as.character(major_reopenings)),
@@ -294,12 +295,12 @@ g <- data %>%
   ggplot(aes(x = Date, y = count)) + 
   #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
   #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
+  restriction_markers(0.5,0.25) +
   geom_line(data=~filter(.,type=="Trend"),aes(color=HR,group=HR),size=0.75) +
   theme_bw() +
   facet_wrap("HA",scales="free_y",ncol=2) +
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   theme(legend.position = "bottom") +
-  restriction_markers +
   # full_labels(label_y,
   #             major_restriction_labels=c("2020-03-18"="Phase 1"),
   #             major_restrictions_y=label_y) +
