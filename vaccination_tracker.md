@@ -1,12 +1,10 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 25 January, 2021 - 17:53
+Last updated at 26 January, 2021 - 12:32
 
-Vaccinations have arrived in Canada, and the [COVID-19 Tracker
-Canada](https://covid19tracker.ca) is collecting data on vaccinations.
-At this point we don’t have good reporting standards of vaccinations and
-it is not clear how vaccination data will get reported.
+Vaccinations have arrived in Canada, and the [Canada COVID-19 Data
+Working Group](https://opencovid.ca) is collecting data on vaccinations.
 
 The first round of vaccines Canada got is the mRNA vaccine from BioNTech
 that requires two doses, spaced 21 days apart, to be fully (\~95%)
@@ -48,11 +46,20 @@ approach being the only reasonable choice.
 
 ## Tracking vaccines
 
-Glossing over reporting details, we can track how vaccines are aiding a
-CovidZero strategy (or how vaccines can help open up while keeping
-deaths and morbidities roughly constant if that’s your jam).
+With vaccines coming in two doses we can track how doses are delivered
+to provinces and administered to people. The first vaccine already gives
+some protection, which is the reason some provinces have decided to
+space out the period between the first and the second shot a little to
+stretch the overall protective value of our currently scarce vaccine
+supply.
 
-<img src="vaccination_tracker_files/figure-gfm/vaccination-status-1.png" width="1050" />
+<img src="vaccination_tracker_files/figure-gfm/vaccination-dose-1.png" width="1050" />
+
+From an immunization point of view it’s more important what share of the
+population has recieved both vaccines and is considered immunized (with
+95% efficacy a week after receiving the second shot).
+
+<img src="vaccination_tracker_files/figure-gfm/vaccination-complete-1.png" width="1050" />
 
 If your goal is to use vaccinations to reduce deaths and morbidity, the
 share of the population who received vaccinations gives a rough
