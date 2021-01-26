@@ -51,7 +51,7 @@ stage_colours <- setNames(RColorBrewer::brewer.pal(d$stage %>% levels %>% length
 
 ## Heatmap
 ```{r}
-weeks = 30
+weeks = 40
 d %>% 
   filter(Date %in% (max(Date)-seq(0,weeks-1)*7)) %>%
   filter(Name!="Unknown") %>%
@@ -59,9 +59,10 @@ d %>%
   geom_tile() +
   scale_fill_manual(values=c("0"="#ffffdd",stage_colours)) +
   theme_dark() +
+  theme(legend.position = "bottom") +
   theme(axis.text.x = element_text(angle=90,hjust=1)) +
   labs(title="COVID-19 7 day incidence",
-              caption  = "MountainMath, Data: BCCDC, scraped by @ty_olsen & a special 10yo",
+              caption  = "MountainMath, Data: BCCDC",
       x=NULL,y=NULL,fill="Cumulative 7 day cases\nper 100k population")
 ```
 

@@ -28,8 +28,8 @@ library(CanCovidData)
 
 source(here("R/helpers.R"))
 
-major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks and\ntravel ban")
-major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks and\ntravel ban")
+major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores.\nTravel discouraged")
+major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores.\nTravel discouraged")
 major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3)
 minor_restrictions <- c("2020-03-11","2020-03-12","2020-03-16","2020-03-17",
                         "2020-03-21","2020-03-22","2020-03-26","2020-04-18",
@@ -93,8 +93,8 @@ g <- data %>%
   geom_line(data=~filter(.,type=="Cleaned"),color="grey",size=0.5,alpha=0.5) +
   geom_line(data=~filter(.,type=="Trend"),color="black",size=1) +
   theme_bw() +
-  scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   theme(legend.position = "bottom") +
+  scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   full_labels(label_y,major_restriction_labels=major_restriction_labels,
               major_restrictions_y=major_restrictions_y*label_y) +
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
