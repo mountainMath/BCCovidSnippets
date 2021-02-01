@@ -62,13 +62,13 @@ plot_data %>%
   geom_point(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
             color="grey") +
   ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
-            aes(label=shortProvince),nudge_x = 20,min.segment.length = 0,color="grey") +
+            aes(label=shortProvince),nudge_x = 50,min.segment.length = 0,color="grey",direction="y") +
   geom_line(data=~filter(.,!(shortProvince %in% successful_provinces)),
             aes(color=shortProvince)) +
   geom_point(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
             aes(color=shortProvince)) +
   ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
-            aes(color=shortProvince,label=shortProvince),nudge_x = 20,min.segment.length = 0) +
+            aes(color=shortProvince,label=shortProvince),nudge_x = 50,min.segment.length = 0,direction="y") +
   scale_color_brewer(palette = "Dark2",guide=FALSE) +
   facet_wrap("type",ncol=1,scales ="free_y") +
   expand_limits(x=max(plot_data$Date)+7) +
@@ -160,14 +160,14 @@ g <- plot_data %>%
   geom_point(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
             aes(color=shortProvince)) +
   ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
-            aes(label=shortProvince,color=shortProvince),hjust=-1.2,direction="y",
+            aes(label=shortProvince,color=shortProvince),nudge_x = 15,direction="y",
             segment.colour="darkgrey") +
   geom_line(data=~filter(.,!(shortProvince %in% successful_provinces)),
             aes(color=shortProvince)) +
   geom_point(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
             aes(color=shortProvince)) +
   ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
-            aes(color=shortProvince,label=shortProvince),hjust=-1.2,direction="y",
+            aes(color=shortProvince,label=shortProvince),nudge_x = 15,direction="y",
             segment.colour="darkgrey") +
   #scale_color_brewer(palette = "Dark2",guide=FALSE) +
   scale_color_manual(values=province_colours,guide=FALSE) +
@@ -222,14 +222,14 @@ g <- plot_data %>%
   geom_point(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
             aes(color=shortProvince)) +
   ggrepel::geom_text_repel(data=~filter(.,shortProvince %in% successful_provinces,Date==max(Date)),
-            aes(label=shortProvince,color=shortProvince),hjust=-1.2,direction="y",
+            aes(label=shortProvince,color=shortProvince),nudge_x = 15,direction="y",
             segment.colour="darkgrey") +
   geom_line(data=~filter(.,!(shortProvince %in% successful_provinces)),
             aes(color=shortProvince)) +
   geom_point(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
             aes(color=shortProvince)) +
   ggrepel::geom_text_repel(data=~filter(.,!(shortProvince %in% successful_provinces),Date==max(Date)),
-            aes(color=shortProvince,label=shortProvince),hjust=-1.2,direction="y",
+            aes(color=shortProvince,label=shortProvince),nudge_x = 15,direction="y",
             segment.colour="darkgrey") +
   #scale_color_brewer(palette = "Dark2",guide=FALSE) +
   scale_color_manual(values=province_colours,guide=FALSE) +
