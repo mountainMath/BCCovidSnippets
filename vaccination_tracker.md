@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 04 February, 2021 - 16:07
+Last updated at 04 February, 2021 - 16:52
 
 Vaccinations have arrived in Canada, and the [Canada COVID-19 Data
 Working Group](https://opencovid.ca) is collecting data on vaccinations.
@@ -60,6 +60,13 @@ population has recieved both vaccines and is considered immunized (with
 95% efficacy a week after receiving the second shot).
 
 <img src="vaccination_tracker_files/figure-gfm/vaccination-complete-1.png" width="1050" />
+
+The first does does grant some partial immunity, we can also look at the
+share of the population that got both doses vs only the first dose of
+the vaccine. This view might get more complicated once single-dose
+vaccines become available in Canada.
+
+<img src="vaccination_tracker_files/figure-gfm/vaccination-status-1.png" width="1050" />
 
 If your goal is to use vaccinations to reduce deaths and morbidity, the
 share of the population who received vaccinations gives a rough
