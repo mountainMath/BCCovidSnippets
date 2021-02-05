@@ -41,10 +41,27 @@ The question of which approach to choose might seem like a question about values
 pop_data <- get_cansim("17-10-0005") %>%
   filter(REF_DATE==2020,`Age group`=="All ages",Sex=="Both sexes") %>%
   add_provincial_abbreviations() %>%
-  select(Province=GEO,GEO.abb,Population=VALUE)
+  select(Province=GEO,shortProvince=GEO.abb,Population=VALUE)
 
-provinces <- c("BC",   "AB",   "SK",   "MB",   "ON" ,  "QC"  , "NB" ,  "PE" ,  "NS",   "NL")
+provinces <- c("BC",   "AB",   "SK",   "MB",   "ON" ,  "QC"  , "NB" ,  "PE" ,  "NS",   "NL", "CAN")
 
+vaccination_data <- get_canada_covid_working_group_timeseries("cvaccine") %>%
+  select(shortProvince,Date=date_vaccine_completed,cumulative_cvaccine,cvaccine) %>%
+  left_join(get_canada_covid_working_group_timeseries("avaccine") %>%
+              select(shortProvince,Date=date_vaccine_administered,cumulative_avaccine,avaccine),
+            by=c("shortProvince","Date")) %>%
+  left_join(get_canada_covid_working_group_timeseries("dvaccine") %>%
+              select(shortProvince,Date=date_vaccine_distributed,cumulative_dvaccine,dvaccine),
+            by=c("shortProvince","Date")) %>%
+  left_join(pop_data,by="shortProvince") %>%
+  mutate(`First dose`=cumulative_avaccine-2*cumulative_cvaccine,
+         `Both doses`=cumulative_cvaccine) %>%
+  bind_rows((.) %>%
+              mutate(shortProvince="CAN",Province="Canada") %>%
+              group_by(Date,shortProvince,Province) %>%
+              summarize_all(sum) %>%
+              ungroup()) %>%
+  mutate(Province=factor(Province,levels=arrange(pop_data,-Population)$Province))
 
 ```
 
@@ -52,17 +69,8 @@ provinces <- c("BC",   "AB",   "SK",   "MB",   "ON" ,  "QC"  , "NB" ,  "PE" ,  "
 With vaccines coming in two doses we can track how doses are delivered to provinces and administered to people. The first vaccine already gives some protection, which is the reason some provinces have decided to space out the period between the first and the second shot a little to stretch the overall protective value of our currently scarce vaccine supply.
 
 ```{r vaccination-dose}
-vaccination_data <- get_canada_covid_working_group_timeseries("avaccine") %>%
-  left_join(pop_data,by="Province") %>%
-  mutate(Date=date_vaccine_administered) %>%
-  mutate(Share=cumulative_avaccine/Population*100)
-
-vaccination_doses <- get_canada_covid_working_group_timeseries("dvaccine") 
 g <- vaccination_data %>%
-  left_join(vaccination_doses %>% 
-              select(Province,Date=date_vaccine_distributed,total=cumulative_dvaccine),
-            by=c("Date","Province")) %>%
-  mutate(Administered=Share,Warehoused=total/Population*100-Administered) %>%
+  mutate(Administered=cumulative_avaccine/Population*100,Warehoused=cumulative_dvaccine/Population*100-Administered) %>%
   tidyr::pivot_longer(c("Administered","Warehoused")) %>%
   mutate(name=factor(name,levels=c("Warehoused","Administered"))) %>%
   filter(shortProvince %in% provinces) %>%
@@ -85,14 +93,9 @@ g
 From an immunization point of view it's more important what share of the population has recieved both vaccines and is considered immunized (with 95% efficacy a week after receiving the second shot).
 
 ```{r vaccination-complete}
-vaccination_data <- get_canada_covid_working_group_timeseries("cvaccine") %>%
-  left_join(pop_data,by="Province") %>%
-  mutate(Date=date_vaccine_completed) %>%
-  mutate(Share=cumulative_cvaccine/Population)
-
 g <- vaccination_data %>%
   filter(cumulative_cvaccine>0) %>%
-  ggplot(aes(x=Date,y=Share)) +
+  ggplot(aes(x=Date,y=cumulative_cvaccine/Population)) +
   geom_bar(stat="identity",fill="purple") +
   facet_wrap("Province") +
   scale_y_continuous(labels=scales::percent) +
@@ -103,6 +106,28 @@ g <- vaccination_data %>%
 
 g
 #r<-graph_to_s3(g,"bccovid","vaccination-status.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+```
+
+The first does does grant some partial immunity, we can also look at the share of the population that got both doses vs only the first dose of the vaccine. This view might get more complicated once single-dose vaccines become available in Canada.
+
+```{r vaccination-status}
+vaccination_data %>%
+  filter(shortProvince %in% provinces) %>%
+  mutate(`First dose`=cumulative_avaccine-2*cumulative_cvaccine,
+         `Both doses`=cumulative_cvaccine) %>%
+  tidyr::pivot_longer(c("First dose","Both doses")) %>%
+  mutate(name=factor(name,levels=c("First dose","Both doses"))) %>%
+  mutate(Share=value/Population) %>%
+  ggplot(aes(x=Date,y=Share,fill=name)) +
+  geom_bar(stat="identity",position="stack") +
+  facet_wrap("Province") +
+  scale_y_continuous(labels=scales::percent) +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  scale_fill_manual(values=sanzo::duos$c035) +
+  labs(title="COVID-19 vaccination status",y="People per 100 population",
+       x=NULL, fill=NULL,
+       caption="MountainMath, Data: Canada Covid Data Working Group")
 ```
 
 If your goal is to use vaccinations to reduce deaths and morbidity, the share of the population who received vaccinations gives a rough indicator of the reduction a month from now when the vaccines take full effect. Since vaccinations are initially focused on vulnerable populations, the effect will be significantly higher than the shown percentage.
