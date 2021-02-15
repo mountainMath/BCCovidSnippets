@@ -34,10 +34,22 @@ pop_data <- get_cansim("17-10-0005") %>%
 
 covid_data <- get_canada_official_provincial_data() %>%
   mutate(Province=prname, shortProvince=cansim:::short_prov.en[prname])
+
+
+successful_provinces <- c("NL","NT","NS","YT","PE","NB")
+
+province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
+                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
+successful_label <- "Atlantic provinces"
+
+successful_provinces <- c("NT","NS","YT","PE","NB")
+
+province_colours <- c(setNames(RColorBrewer::brewer.pal(7,"Dark2"),c("SK","AB","BC","MB","ON","QC","NS")),
+                      setNames(RColorBrewer::brewer.pal(3,"Dark2"),c("NL","PE","NB")))
+successful_label <- "Atlantic provinces sans NL"
 ```
 
 ```{r eval=FALSE, include=FALSE}
-successful_provinces <- c("NL","NT","NS","YT","PE","NB")
 
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
@@ -83,10 +95,6 @@ plot_data %>%
 The Atlantic provinces have pursued very different COVID-19 strategies from the other provinces and have seen very different outcomes. The 7-day incidence, that is the cumulative number of cases over the past 7 days per 100,000 population, has been used by many jurisdictions as a key metric to trigger policy interventions.
 
 ```{r two-covid-canadas-overview}
-successful_provinces <- c("NL","NT","NS","YT","PE","NB")
-
-province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
-                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
 
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
@@ -101,7 +109,7 @@ plot_data <- covid_data %>%
   arrange(Date) %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
-  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces"))
+  mutate(type=ifelse(shortProvince %in% successful_provinces,successful_label,"Other provinces"))
 
 g <- plot_data %>%
   filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
@@ -129,11 +137,6 @@ For better comparison we can plot the Atlantic provinces and the other provinces
 
 
 ```{r two-covid-canadas}
-successful_provinces <- c("NL","NT","NS","YT","PE","NB")
-
-province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
-                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
-
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
   select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
@@ -148,7 +151,7 @@ plot_data <- covid_data %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
   #mutate(incidence=zoo::rollsum(Cases,7,align="center",fill=as.numeric(NA))/Population*100000) %>%
-  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces")) 
+  mutate(type=ifelse(shortProvince %in% successful_provinces,successful_label,"Other provinces")) 
 
 g <- plot_data %>%
   filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
@@ -191,11 +194,6 @@ A fairly simple trend line model like a (multiplicative) STL decomposition can e
 
 
 ```{r two-covid-canadas-trend}
-successful_provinces <- c("NL","NT","NS","YT","PE","NB")
-
-province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
-                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
-
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
   select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
@@ -210,7 +208,7 @@ plot_data <- covid_data %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(Cases=pmax(0,Cases)) %>%
   mutate(trend=(extract_stl_trend_m(Cases+1)-1)/Population*100000) %>%
-  mutate(type=ifelse(shortProvince %in% successful_provinces,"Atlantic provinces","Other provinces")) 
+  mutate(type=ifelse(shortProvince %in% successful_provinces,successful_label,"Other provinces")) 
 
 g <- plot_data %>%
   filter(Date>=as.Date("2020-03-01"),shortProvince!="CAN") %>%
