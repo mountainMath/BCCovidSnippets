@@ -194,6 +194,12 @@ A fairly simple trend line model like a (multiplicative) STL decomposition can e
 
 
 ```{r two-covid-canadas-trend}
+successful_provinces <- c("NL","NT","NS","YT","PE","NB")
+
+province_colours <- c(setNames(RColorBrewer::brewer.pal(6,"Dark2"),c("SK","AB","BC","MB","ON","QC")),
+                      setNames(RColorBrewer::brewer.pal(4,"Dark2"),c("NL","NS","PE","NB")))
+successful_label <- "Atlantic provinces"
+
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
   select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
