@@ -319,6 +319,56 @@ g
 #r<-graph_to_s3(g,"bccovid","hr-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 
+### Age groups
+```{r bc_age_groups}
+bc_pop_age <- read_csv(here::here("data/ha_pop_age.csv")) %>%
+  pivot_longer(matches("\\d+"),names_to="Age",values_to="Count") %>%
+  mutate(Age=ifelse(Age=="LT1",0,Age)) %>%
+  mutate(top=strsplit(Age,"-") %>% lapply(last) %>% unlist %>% as.integer()) %>%
+  mutate(t=floor(top/10)*10+9) %>%
+  mutate(`Age group`=paste0(t-9,"-",t)) %>%
+  mutate(`Age group`=recode(`Age group`,"0-9"="<10","NA-NA"="90+")) %>%
+  group_by(`Health Authority`,`Age group`) %>%
+  summarize(Total=first(Total),Count=sum(Count),.groups="drop") %>%
+  mutate(Share=Count/Total)
+
+bc_cases_age_date <- get_british_columbia_case_data()  %>%
+  count(`Age group`,Date=`Reported Date`,name="Cases") %>%
+  complete(`Age group`=unique(.data$`Age group`),
+           Date=seq(min(.data$Date),max(.data$Date),by="day"),
+           fill=list(Cases=0)) %>%
+  left_join(bc_pop_age %>% filter(`Health Authority`=="British Columbia"),by="Age group") %>%
+  bind_rows(group_by(.,Date) %>% summarize(Cases=sum(Cases),Count=sum(Count,na.rm = TRUE)) %>% mutate(`Age group`="All ages")) %>%
+  group_by(`Age group`) %>%
+  arrange(Date) %>%
+  filter(Date>=as.Date("2020-03-01"),`Age group`!="Unknown") %>%
+  mutate(Trend=(extract_stl_trend_m(Cases+1)-1)/Count*100000)
+
+ages <- bc_cases_age_date %>% filter(`Age group`!="Unknown") %>% pull(`Age group`) %>% unique %>% sort %>%
+  setdiff("All ages")
+
+age_colours <- setNames(c(RColorBrewer::brewer.pal(length(ages),"Set3"),"black"),c(ages,"All ages"))
+
+
+bc_cases_age_date %>%
+  group_by(`Age group`) %>%
+  arrange(Date) %>%
+  filter(Date>=as.Date("2020-06-01")) %>%
+  filter(`Age group`!="Unknown") %>%
+  #mutate(highlight=`Age group` %in% c("<10","10-19","Total")) %>%
+  ggplot(aes(x=Date,y=Trend,color=highlight,group=`Age group`)) +
+  #geom_line(size=0.5,color="grey") +
+  #geom_line(data=~filter(.,highlight),aes(color=`Age group`),size=1) +
+  geom_line(aes(color=`Age group`),size=0.5) +
+  theme_bw() +
+  scale_colour_manual(values=age_colours) +
+  #scale_y_continuous(trans="log",breaks=c(0.1,0.2,0.5,1,2,5,10,20)) +
+  scale_x_date(labels=function(d)strftime(d,"%b"),breaks="month") +
+  #scale_color_manual(values=sanzo::trios$c157) +
+  labs(title="STL trend line by age group",colour="Age group",
+       x=NULL,y="Daily case counts trend per 100k population",
+       caption="MountainMath, Data: BCCDC, BC Stats Population estimates 2019")
+```
 
 ### Health Region geocoding problems
 Health Authorities may lag in geocoding cases to Health Region geographies, which makes the above Health Region level graph difficult to interpret. This graph shows the share of cases in each Health Authority that were geocoded to Health Region geographies.
