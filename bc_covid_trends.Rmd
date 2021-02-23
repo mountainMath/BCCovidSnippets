@@ -99,7 +99,7 @@ g <- data %>%
               major_restrictions_y=major_restrictions_y*label_y) +
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
-       x=NULL,y=NULL,color=NULL,caption="MountainMath, Data: BCCDC") +
+       x=NULL,y="Number of daily cases",color=NULL,caption="MountainMath, Data: BCCDC") +
   theme(plot.subtitle = element_markdown())
 g
 #r<-graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
