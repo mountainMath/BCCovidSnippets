@@ -6,6 +6,8 @@ on:
       - open_table.Rmd
       - vaccination_tracker.Rmd
       - .github/workflows/compile-bc-trends.yaml
+  schedule:
+    - cron: "35 0,1 * * *"
 
 name: Render BC Trends
 
@@ -58,9 +60,6 @@ jobs:
       - name: Render OpenTable
         run: |
           Rscript -e 'rmarkdown::render("open_table.Rmd")'
-      - name: Render BC School Tracker
-        run: |
-          Rscript -e 'rmarkdown::render("bc_school_tracker.Rmd")'
       - name: Render Vaccination Tracker
         run: |
           Rscript -e 'rmarkdown::render("vaccination_tracker.Rmd")'
@@ -72,6 +71,5 @@ jobs:
           git commit bc_covid_trends.md  bc_covid_trends_files -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
           git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git commit open_table.md open_table_files -m 'Re-build open_table.Rmd' || echo "No changes to commit"
-          git commit bc_school_tracker.md bc_school_tracker_files -m 'Re-build bc_school_tracker.Rmd' || echo "No changes to commit"
           git commit vaccination_tracker.md vaccination_tracker_files -m 'Re-build vaccination_tracker.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
