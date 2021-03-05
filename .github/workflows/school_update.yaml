@@ -1,10 +1,10 @@
 on:
-  - schedule:
-     - cron: "0 6 * * *"
-  - push:
-      paths:
-        - bc_school_tracker.Rmd
-        - .github/workflows/school_update.yaml
+  push:
+    paths:
+      - bc_school_tracker.Rmd
+      - .github/workflows/school_update.yaml
+  schedule:
+    - cron: "0 6 * * *"
    
 name: Render BC School Tracker
 
