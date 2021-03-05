@@ -197,6 +197,50 @@ g
 ```
 
 
+## Monthly exposure density
+Looking at monthly school exposure denisty gives us some sense of how the distribution of exposure notifications has changed over time. The last month only has partial data.
+
+
+```{r school-tracker-monthly, fig.height=10, fig.height=13}
+school_data <- data %>%
+  mutate_at(c("latitude","longitude"),as.numeric) %>%
+  filter(!is.na(latitude)) %>%
+  filter(between(latitude,bb$ymin,bb$ymax),
+         between(longitude,bb$xmin,bb$xmax)) %>%
+  mutate(Period=strftime(Date,"%b %Y")) %>%
+  mutate(Period=factor(Period, levels= arrange(.,Date)$Period %>% unique)) %>%
+  st_as_sf(coords=c("longitude","latitude"),crs=4326,agr="constant") %>%
+  ungroup() %>%
+  st_jitter(amount=0.005) %>%
+  cbind(st_coordinates(.)) %>%
+  rename(!!!c("longitude"="X","latitude"="Y"))
+
+bb <- c(1,2.5,5,7.5,10,15,20,25,30,40,50,60,100)
+bb <- c(1000,2500,5000,7500,10000,15000,20000,25000,30000)
+  #sf::st_as_sf(coords=c("longitude","latitude"),agr="constant",na.fail = FALSE) %>%
+g <- ggplot(m) +
+  stat_density_2d(data=school_data,
+                 contour_var="count",
+                 aes(x=longitude,y=latitude, fill = ..level.., alpha = ..level..),
+                 h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
+                 geom = "polygon", breaks=bb
+                 ) +
+  scale_fill_viridis_c(guide=FALSE,option="magma",limits=c(0,30000)) +
+  scale_alpha_continuous(guide=FALSE,limits=c(0,30000)) +
+  geom_roads() +
+  geom_water(color="grey",size=0.1) +
+  geom_sf(data=school_data,size=0.1,alpha=0.4) +
+  geom_sf(fill=NA,color="brown",size=0.1) +
+  facet_wrap("Period",ncol=2) +
+  coord_bbox(metro_van_bbox("tight")) +
+  labs(x=NULL,y=NULL,fill=NULL,
+       title="Geographic distribution of school exposure notifications",
+       caption="MountainMath, Data: BC School Covid Tracker")
+
+g
+```
+
+
 ## Children density heat map for comparison
 
 ```{r school-tracker-children}
@@ -218,7 +262,7 @@ g <- ggplot(m) +
                  aes(x=X,y=Y, fill = ..level.., alpha = ..level..),
                  h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
                  bins = 16, geom = "polygon") + #, breaks=c(1,2.5,5,7.5,10,12.5,15,17.5,20,25,30,35)) +
-  scale_fill_viridis_c(guide=FALSE,option="magma") +
+  scale_fill_viridis_c(guide=FALSE,option="viridis") +
   scale_alpha_continuous(guide=FALSE) +
   geom_roads() +
   geom_water(color="grey",size=0.1) +
