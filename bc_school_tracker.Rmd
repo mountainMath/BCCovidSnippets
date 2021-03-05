@@ -24,9 +24,13 @@ library(mountainmathHelpers)
 library(sf)
 library(PROJ)
 library(cancensus)
+library(lubridate)
+library(sanzo)
 source(here::here("R/helpers.R"))
 
 options("cancensus.cache_path"=here::here("data"))
+ha_colours <- setNames(c(trios$c157,trios$c149),
+                       c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
 
 extract_table_data <- function(node){
     h <- node %>% rvest::html_nodes("thead th") %>% rvest::html_text()
@@ -75,7 +79,8 @@ clean_data <- function(d){
            `Health Authority`=d$field_26_raw %>% lapply(function(f)f$identifier) %>% as.character,
            Verification=d$field_14_raw %>% lapply(function(f)f$identifier) %>% as.character,
            `Exposure dates`=d$field_15,
-           `Exposure count`=d$field_25) %>%
+           `Exposure count`=d$field_25,
+         Status =d$field_30) %>%
       bind_cols(d$field_19_raw %>% as_tibble) %>%
     mutate(E=str_extract(`Exposure count`,"Exposure \\d+|Secondary \\d+") %>% 
              unlist() %>% 
@@ -101,9 +106,52 @@ data <- get_all_data()
 
 In BC we don't have good data on community level COVID cases. But we can, somewhat cynically, use school exposures as a proxy. The [BC School Covid Tracker project](https://bcschoolcovidtracker.knack.com/bc-school-covid-tracker#home/) has been keeping count of school exposures and meticulously documenting and geocoding the data. That makes is easy for use to create a heatmap of school exposures.
 
-However, this data is not normalized by population, so it should be viewd in context of the school aged (5-17yo) population further down.
+
+## Variants of concern
+The share of school exposures that are related to variants of concern can give an indication of the general proliferation of variants of concern.
+
+We look at the share of school exposures involving variants of concern for each week, where we split the week between Monday and Tuesday as exposure notifications coming out on Monday usually relate to exposures in the preceding week.
+
+```{r schools_voc}
+plot_data <- data %>%
+  mutate(`Health Authority`=recode(`Health Authority`,
+                                   "Fraser Health Authority"="Fraser",
+                                   "Interior Health Authority"="Interior",
+                                   "Vancouver Coastal Health"="Vancouver Coastal",
+                                    "Vancouver Island Health Authority"="Vancouver Island",
+                                   "Northern Health"="Northern")) %>%
+  mutate(VOC=grepl("concern|variant",`Exposure count`,ignore.case = TRUE)) %>%
+  mutate(Week=ceiling_date(Date,"week",week_start=2)-1) %>%
+  count(Week,VOC,`Health Authority`) %>%
+  complete(Week,VOC,`Health Authority`,fill=list(n=0)) %>%
+  group_by(Week,`Health Authority`) %>%
+  mutate(share=n/sum(n)) %>%
+  #filter(Week >= min(filter(.,VOC)$Week)) %>%
+  filter(VOC) %>%
+  filter(Week >= min(filter(.,VOC,n>0)$Week)) %>%
+  ungroup %>%
+  mutate(week=factor(strftime(Week,"%b %d"),levels=sort(unique(Week)) %>% strftime(.,"%b %d")),
+         w=strftime(Week-2,format = "%U") %>% as.integer) 
+
+plot_data %>%
+  group_by(`Health Authority`) %>%
+  filter(sum(n)>0) %>%
+ggplot(aes(x=week,y=share,fill=`Health Authority`)) +
+  geom_bar(stat="identity") +
+  scale_y_continuous(labels=scales::percent) +
+  scale_fill_manual(values=ha_colours,guide=FALSE) +
+  facet_wrap("`Health Authority`") +
+  labs(title="School exposures involving variants of concern",
+       x="Initial exposure letter in week ending",
+       y="Share of exposures involving variant of concern",
+       caption="MountainMath, Data: BC School Covid Tracker")
+  
+```
+
+
 
 ## School Exposure Heat Map
+This data is not normalized by population, so it should be viewd in context of the school aged (5-17yo) population further down.
 
 ```{r school-tracker-schools}
 bb<-metro_van_bbox()

@@ -1,38 +1,38 @@
-extract_stl_trend <- function(c){
+extract_stl_trend <- function(c,s.window=21,t.window=14){
   #print(length(c))
   cc <- c %>%
     ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
-    stl(s.window=14,t.window=14) 
+    stl(s.window=s.window,t.window=t.window) 
   
   as_tibble(cc$time.series)$trend
 }
 
-extract_stl_seasonal <- function(c){
+extract_stl_seasonal <- function(c,s.window=21,t.window=14){
   #print(length(c))
   cc <- c %>%
     ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
-    stl(s.window=14,t.window=14) 
+    stl(s.window=s.window,t.window=t.window) 
   
   as_tibble(cc$time.series)$seasonal
 }
 
 
-extract_stl_trend_m <- function(c){
+extract_stl_trend_m <- function(c,s.window=21,t.window=14){
   #print(length(c))
   cc <- c %>%
     log %>%
     ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
-    stl(s.window=14,t.window=14) 
+    stl(s.window=s.window,t.window=t.window) 
   
   as_tibble(cc$time.series)$trend %>% exp()
 }
 
-extract_stl_seasonal_m <- function(c){
+extract_stl_seasonal_m <- function(c,s.window=21,t.window=14){
   #print(length(c))
   cc <- c %>%
     log() %>%
     ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
-    stl(s.window=14,t.window=14) 
+    stl(s.window=s.window,t.window=t.window) 
   
   as_tibble(cc$time.series)$seasonal%>% exp()
 }
