@@ -28,12 +28,14 @@ source(here("R/helpers.R"))
 This notebook shows the confirmed COVID cases for Canadian provinces. The code for this notebook is [available for anyone to adapt and use for their own purposes](https://github.com/mountainMath/BCCovidSnippets/blob/main/two_covid_canadas.Rmd).
 
 ```{r}
-pop_data <- get_cansim("17-10-0005") %>%
+pop_data <- simpleCache(get_cansim("17-10-0005") %>%
   filter(REF_DATE==2020,`Age group`=="All ages",Sex=="Both sexes") %>%
-  select(Province=GEO,Population=VALUE)
+  select(Province=GEO,Population=VALUE),"prov_pop_data",path = here::here("data"))
 
 covid_data <- get_canada_official_provincial_data() %>%
-  mutate(Province=prname, shortProvince=cansim:::short_prov.en[prname])
+  mutate(Province=prname, shortProvince=cansim:::short_prov.en[prname]) %>%
+  filter(!(Province %in% c("Canada","Repatriated"))) %>%
+  mutate(update=coalesce(update,FALSE))
 
 
 successful_provinces <- c("NL","NT","NS","YT","PE","NB")
@@ -52,8 +54,7 @@ successful_label <- "Atlantic provinces sans NL"
 ```{r eval=FALSE, include=FALSE}
 
 plot_data <- covid_data %>% 
-  filter(Province!="Repatriated") %>%
-  select(Date,Province,shortProvince,Cases) %>%
+  select(Date,Province,shortProvince,Cases,udpate) %>%
   complete(Date,Province) %>%
   mutate(Cases=replace_na(Cases,0)) %>%
   left_join(pop_data,by="Province") %>%
@@ -97,15 +98,14 @@ The Atlantic provinces have pursued very different COVID-19 strategies from the 
 ```{r two-covid-canadas-overview}
 
 plot_data <- covid_data %>% 
-  filter(Province!="Repatriated") %>%
-  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
+  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday,update) %>%
   complete(Date,Province) %>%
   mutate(Cases=replace_na(Cases,0),
          Deaths=replace_na(Deaths,0)) %>%
   left_join(pop_data,by="Province") %>%
   group_by(Province) %>%
   arrange(desc(Date)) %>%
-  filter(cumsum(Cases)>0) %>% # remove trailing zeros
+  filter(cumsum(update)>0) %>% # remove trailing zeros
   arrange(Date) %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
@@ -139,14 +139,14 @@ For better comparison we can plot the Atlantic provinces and the other provinces
 ```{r two-covid-canadas}
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
-  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
-  complete(Date,Province) %>%
-  mutate(Cases=replace_na(Cases,0),
-         Deaths=replace_na(Deaths,0)) %>%
+  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday,update) %>%
+  # complete(Date,Province) %>%
+  # mutate(Cases=replace_na(Cases,0),
+  #        Deaths=replace_na(Deaths,0)) %>%
   left_join(pop_data,by="Province") %>%
   group_by(Province) %>%
   arrange(desc(Date)) %>%
-  filter(cumsum(Cases)>0) %>% # remove trailing zeros
+  filter(cumsum(update)>0) %>% # remove trailing zeros
   arrange(Date) %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(incidence=roll::roll_sum(Cases,7)/Population*100000) %>%
@@ -202,14 +202,14 @@ successful_label <- "Atlantic provinces"
 
 plot_data <- covid_data %>% 
   filter(Province!="Repatriated") %>%
-  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday) %>%
-  complete(Date,Province) %>%
+  select(Date,Province,shortProvince,Cases,TotalDeaths=Deaths,Deaths=numdeathstoday,update) %>%
+  #complete(Date,Province) %>%
   mutate(Cases=replace_na(Cases,0),
          Deaths=replace_na(Deaths,0)) %>%
   left_join(pop_data,by="Province") %>%
   group_by(Province) %>%
   arrange(desc(Date)) %>%
-  filter(cumsum(Cases)>0) %>% # remove trailing zeros
+  filter(cumsum(update)>0) %>% # remove trailing zeros
   arrange(Date) %>%
   mutate(Cases=clean_missing_weekend_data(Cases)) %>%
   mutate(Cases=pmax(0,Cases)) %>%
