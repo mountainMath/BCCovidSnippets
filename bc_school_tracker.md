@@ -1,7 +1,7 @@
 BC School Tracker
 ================
 Jens von Bergmann
-Last updated at 15 March, 2021 - 01:24
+Last updated at 16 March, 2021 - 01:26
 
 In BC we don’t have good data on community level COVID cases. But we
 can, somewhat cynically, use school exposures as a proxy. The [BC School
