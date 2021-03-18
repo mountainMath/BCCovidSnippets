@@ -48,6 +48,7 @@ jobs:
           install.packages("cansim")
           install.packages("stringr")
           install.packages("rvest")
+          install.packages("sf",type="binary")
           remotes::install_github("mountainMath/mountainmathHelpers")
           remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
