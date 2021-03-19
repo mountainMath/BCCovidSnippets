@@ -80,7 +80,8 @@ clean_data <- function(d){
            Verification=d$field_14_raw %>% lapply(function(f)f$identifier) %>% as.character,
            `Exposure dates`=d$field_15,
            `Exposure count`=d$field_25,
-         Status =d$field_30) %>%
+         #Status =d$field_30,
+         Variant=d$field_38) %>%
       bind_cols(d$field_19_raw %>% as_tibble) %>%
     mutate(E=str_extract(`Exposure count`,"Exposure \\d+|Secondary \\d+") %>% 
              unlist() %>% 
@@ -123,7 +124,7 @@ plot_data <- data %>%
                                    "Vancouver Coastal Health"="Vancouver Coastal",
                                     "Vancouver Island Health Authority"="Vancouver Island",
                                    "Northern Health"="Northern")) %>%
-  mutate(VOC=grepl("concern|variant",`Exposure count`,ignore.case = TRUE)) %>%
+  mutate(VOC=grepl("concern|variant",`Variant`,ignore.case = TRUE)) %>%
   mutate(Week=ceiling_date(Date,"week",week_start=2)-1) %>%
   count(Week,VOC,`Health Authority`) %>%
   complete(Week,VOC,`Health Authority`,fill=list(n=0)) %>%
