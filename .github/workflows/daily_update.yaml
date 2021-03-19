@@ -24,6 +24,7 @@ jobs:
           # conflicts with gfortran from r-lib/actions when linking gcc
           #rm '/usr/local/bin/gfortran'
           brew install udunits
+          brew install pkg-config gdal proj geos udunits
       - name: Install rmarkdown, remotes, and required packages
         run: |
           install.packages("remotes")
