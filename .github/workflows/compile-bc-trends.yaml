@@ -7,7 +7,7 @@ on:
       - vaccination_tracker.Rmd
       - .github/workflows/compile-bc-trends.yaml
   schedule:
-    - cron: "35 0,1 * * *"
+    - cron: "35 0,23 * * *"
 
 name: Render BC Trends
 
