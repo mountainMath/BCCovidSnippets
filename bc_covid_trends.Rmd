@@ -28,9 +28,9 @@ library(CanCovidData)
 
 source(here("R/helpers.R"))
 
-major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged")
-major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged")
-major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3)
+major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-29"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
+major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-02-10"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
+major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3,"2020-03-29"=0.1)
 minor_restrictions <- c("2020-03-11","2020-03-12","2020-03-16","2020-03-17",
                         "2020-03-21","2020-03-22","2020-03-26","2020-04-18",
                         "2020-06-18","2020-08-21","2020-09-08","2020-10-26")
@@ -320,6 +320,8 @@ g
 ```
 
 ### Age groups
+Case prevalence by age group.
+
 ```{r bc_age_groups}
 bc_pop_age <- read_csv(here::here("data/ha_pop_age.csv")) %>%
   pivot_longer(matches("\\d+"),names_to="Age",values_to="Count") %>%
@@ -347,7 +349,7 @@ bc_cases_age_date <- get_british_columbia_case_data()  %>%
 ages <- bc_cases_age_date %>% filter(`Age group`!="Unknown") %>% pull(`Age group`) %>% unique %>% sort %>%
   setdiff("All ages")
 
-age_colours <- setNames(c(RColorBrewer::brewer.pal(length(ages),"Set3"),"black"),c(ages,"All ages"))
+age_colours <- setNames(c(RColorBrewer::brewer.pal(length(ages),"Paired"),"black"),c(ages,"All ages"))
 
 
 bc_cases_age_date %>%
@@ -365,8 +367,39 @@ bc_cases_age_date %>%
   #scale_y_continuous(trans="log",breaks=c(0.1,0.2,0.5,1,2,5,10,20)) +
   scale_x_date(labels=function(d)strftime(d,"%b"),breaks="month") +
   #scale_color_manual(values=sanzo::trios$c157) +
-  labs(title="STL trend line by age group",colour="Age group",
+  labs(title="Case trend lines by age group",colour="Age group",
        x=NULL,y="Daily case counts trend per 100k population",
+       caption="MountainMath, Data: BCCDC, BC Stats Population estimates 2019")
+```
+
+
+```{r relative_age_prevalence}
+bc_cases_prevalence_date <- get_british_columbia_case_data()  %>%
+  count(`Age group`,Date=`Reported Date`,name="Cases") %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
+  complete(`Age group`=unique(.data$`Age group`),
+           Date=seq(min(.data$Date),max(.data$Date),by="day"),
+           fill=list(Cases=0)) %>%
+  filter(`Age group`!="Unknown") %>%
+  #filter(!(`Age group` %in% c("80-89","90+"))) %>%
+  group_by(`Age group`) %>%
+  mutate(Trend=pmax(0.01,extract_stl_trend_m(Cases+0.00001))) %>%
+  group_by(Date) %>%
+  mutate(share=Trend/sum(Trend)) %>%
+  left_join(bc_pop_age %>% filter(`Health Authority`=="British Columbia"), by="Age group") %>%
+  mutate(prevalence=share/Share)
+  
+
+bc_cases_prevalence_date %>%
+  filter(Date>=as.Date("2020-10-01")) %>% 
+  ggplot(aes(x=Date,y=prevalence,color=`Age group`,group=`Age group`)) +
+  geom_line(aes(color=`Age group`),size=0.5) +
+  theme_bw() +
+  #geom_smooth(method="lm",se=FALSE) +
+  scale_color_manual(values=age_colours) +
+  scale_x_date(labels=function(d)strftime(d,"%b"),breaks="month") +
+  labs(title="Relative prevalence by age group",colour="Age group",
+       x=NULL,y="Relative prevalence\n(share of cases by share of population)",
        caption="MountainMath, Data: BCCDC, BC Stats Population estimates 2019")
 ```
 
