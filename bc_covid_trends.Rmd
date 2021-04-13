@@ -29,7 +29,7 @@ library(CanCovidData)
 source(here("R/helpers.R"))
 
 major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-29"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
-major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-02-25"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
+major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-02-28"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
 major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3,"2020-03-29"=0.1)
 minor_restrictions <- c("2020-03-11","2020-03-12","2020-03-16","2020-03-17",
                         "2020-03-21","2020-03-22","2020-03-26","2020-04-18",
@@ -186,8 +186,8 @@ label_y <- max(data$Cases) * 0.9
 g <- data %>% 
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
   ggplot(aes(x = Date, y = count)) + 
-  geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.25,aes(color=HA,group=HA)) +
-  geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.25,aes(color=HA,group=HA)) +
+  #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.25,aes(color=HA,group=HA)) +
+  #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.25,aes(color=HA,group=HA)) +
   geom_line(data=~filter(.,type=="Trend"),aes(color=HA,group=HA),size=1) +
   theme_bw() +
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
