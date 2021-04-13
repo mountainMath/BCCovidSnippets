@@ -124,7 +124,7 @@ plot_data <- data %>%
                                    "Vancouver Coastal Health"="Vancouver Coastal",
                                     "Vancouver Island Health Authority"="Vancouver Island",
                                    "Northern Health"="Northern")) %>%
-  mutate(VOC=grepl("concern|variant",`Variant`,ignore.case = TRUE)) %>%
+  mutate(VOC=grepl("concern|variant|VOC",`Variant`,ignore.case = TRUE)) %>%
   mutate(Week=ceiling_date(Date,"week",week_start=2)-1) %>%
   count(Week,VOC,`Health Authority`) %>%
   complete(Week,VOC,`Health Authority`,fill=list(n=0)) %>%
@@ -144,12 +144,11 @@ ggplot(aes(x=week,y=share,fill=`Health Authority`)) +
   geom_bar(stat="identity") +
   scale_y_continuous(labels=scales::percent) +
   scale_fill_manual(values=ha_colours,guide=FALSE) +
-  facet_wrap("`Health Authority`") +
+  facet_wrap("`Health Authority`",ncol=2) +
   labs(title="School exposures involving variants of concern",
        x="Initial exposure letter in week ending",
        y="Share of exposures involving variant of concern",
        caption="MountainMath, Data: BC School Covid Tracker")
-  
 ```
 
 
