@@ -33,7 +33,8 @@ pop_data <- simpleCache(get_cansim("17-10-0005") %>%
   select(Province=GEO,Population=VALUE),"prov_pop_data",path = here::here("data"))
 
 covid_data <- get_canada_official_provincial_data() %>%
-  mutate(Province=prname, shortProvince=cansim:::short_prov.en[prname]) %>%
+  mutate(shortProvince=recode(shortProvince,"Nouveau-Brunswick"="NB")) %>%
+  mutate(Province=recode(prname,"Nouveau-Brunswick"="New Brunswick")) %>%
   filter(!(Province %in% c("Canada","Repatriated"))) %>%
   mutate(update=coalesce(update,FALSE))
 
@@ -54,7 +55,7 @@ successful_label <- "Atlantic provinces sans NL"
 ```{r eval=FALSE, include=FALSE}
 
 plot_data <- covid_data %>% 
-  select(Date,Province,shortProvince,Cases,udpate) %>%
+  select(Date,Province,shortProvince,Cases,update) %>%
   complete(Date,Province) %>%
   mutate(Cases=replace_na(Cases,0)) %>%
   left_join(pop_data,by="Province") %>%
