@@ -66,6 +66,12 @@ full_labels <- function(label_y,
 ha_colours <- setNames(c(trios$c157,trios$c149),
                        c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
 
+ratio_to_share <- function(r)1/(1+1/r)
+n501y <- read_csv(here::here("data/n501y.csv"))
+model.n501y <- lm(log(ratio_voc)~Date,data=n501y %>% filter(Week>=7))
+prediction.n501y <- tibble(Date=seq(as.Date("2021-02-01"),Sys.Date(),by="day")) %>%
+  mutate(ratio_voc =- predict(model.n501y,newdata = .) %>% exp) %>%
+  mutate(share_voc = ratio_to_share(ratio_voc))
 ```
 
 
@@ -81,23 +87,34 @@ data <- get_british_columbia_case_data() %>%
   mutate(Trend=extract_stl_trend_m(Cases),
          Seasonal=extract_stl_seasonal_m(Cases)) %>%
   mutate(Cleaned=Cases/Seasonal) %>%
-  cbind(compute_rolling_exp_fit(.$Trend))
+  cbind(compute_rolling_exp_fit(.$Trend)) %>%
+  left_join(prediction.n501y,by="Date") %>%
+  mutate(`Wild Type`=(1-share_voc)*Trend)
 
 label_y <- max(data$Cases) * 0.9
 
 g <- data %>% 
-  pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
+  pivot_longer(c("Cases","Trend","Cleaned","Wild Type"),names_to="type",values_to="count") %>%
   #filter(Date>=as.Date("2020-11-01")) %>%
   ggplot(aes(x = Date, y = count)) + 
-  geom_point(data=~filter(.,type=="Cases"),color="grey",size=0.5) +
-  geom_line(data=~filter(.,type=="Cleaned"),color="grey",size=0.5,alpha=0.5) +
-  geom_line(data=~filter(.,type=="Trend"),color="black",size=1) +
+  geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
+  geom_line(data=~filter(.,type=="Cleaned"),aes(color=type),size=0.5,alpha=0.5) +
+  geom_line(data=~filter(.,type=="Trend"),aes(color=type),size=1) +
+  geom_line(data=~filter(.,type=="Wild Type"),aes(color=type),size=1) +
   theme_bw() +
   theme(legend.position = "bottom") +
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   full_labels(label_y,major_restriction_labels=major_restriction_labels,
               major_restrictions_y=major_restrictions_y*label_y) +
-  labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
+  scale_color_manual(values=c("Cases"="darkgrey","Cleaned"="darkgrey",
+                              "Trend"="black","Wild Type"="steelblue"),
+                     labels=c("Cases"="Cases","Cleaned"="Adjused for weekly pattern",
+                              "Trend"="Trend","Wild Type"="Wild Type")) +
+  guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1,"Wild Type"=1),
+                                                  shape = c("Cases"=21,"Cleaned"=NA,
+                                                            "Trend"=NA,"Wild Type"=NA)) )) +
+  labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",
+                    strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Number of daily cases",color=NULL,caption="MountainMath, Data: BCCDC") +
   theme(plot.subtitle = element_markdown())
