@@ -68,10 +68,9 @@ ha_colours <- setNames(c(trios$c157,trios$c149),
 
 ratio_to_share <- function(r)1/(1+1/r)
 n501y <- read_csv(here::here("data/n501y.csv"))
-model.n501y <- lm(log(ratio_voc)~Date,data=n501y %>% filter(Week>=7))
+model.n501y <- lm(log(ratio_voc)~Date,data=n501y %>% filter(as.integer(Week)>=7))
 prediction.n501y <- tibble(Date=seq(as.Date("2021-02-01"),Sys.Date(),by="day")) %>%
-  mutate(ratio_voc =- predict(model.n501y,newdata = .) %>% exp) %>%
-  mutate(share_voc = ratio_to_share(ratio_voc))
+  mutate(share_voc = predict(model.n501y,newdata = .) %>% exp %>% ratio_to_share) 
 ```
 
 
@@ -99,8 +98,9 @@ g <- data %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
   geom_line(data=~filter(.,type=="Cleaned"),aes(color=type),size=0.5,alpha=0.5) +
+  geom_line(data=~filter(.,type=="Wild Type",Date<=max(n501y$Date)),aes(color=type),size=1) +
+  geom_line(data=~filter(.,type=="Wild Type",Date>max(n501y$Date)),aes(color=type),size=1,linetype="dotted") +
   geom_line(data=~filter(.,type=="Trend"),aes(color=type),size=1) +
-  geom_line(data=~filter(.,type=="Wild Type"),aes(color=type),size=1) +
   theme_bw() +
   theme(legend.position = "bottom") +
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
@@ -108,8 +108,8 @@ g <- data %>%
               major_restrictions_y=major_restrictions_y*label_y) +
   scale_color_manual(values=c("Cases"="darkgrey","Cleaned"="darkgrey",
                               "Trend"="black","Wild Type"="steelblue"),
-                     labels=c("Cases"="Cases","Cleaned"="Adjused for weekly pattern",
-                              "Trend"="Trend","Wild Type"="Wild Type")) +
+                     labels=c("Cases"="Reported cases","Cleaned"="Adjused for weekly pattern",
+                              "Trend"="Overall trend","Wild Type"="Wild Type")) +
   guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1,"Wild Type"=1),
                                                   shape = c("Cases"=21,"Cleaned"=NA,
                                                             "Trend"=NA,"Wild Type"=NA)) )) +
