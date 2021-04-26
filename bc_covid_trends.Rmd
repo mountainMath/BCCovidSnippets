@@ -29,7 +29,7 @@ library(CanCovidData)
 source(here("R/helpers.R"))
 
 major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-29"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
-major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-02-28"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
+major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-07"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
 major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3,"2020-03-29"=0.1)
 minor_restrictions <- c("2020-03-11","2020-03-12","2020-03-16","2020-03-17",
                         "2020-03-21","2020-03-22","2020-03-26","2020-04-18",
@@ -66,8 +66,15 @@ full_labels <- function(label_y,
 ha_colours <- setNames(c(trios$c157,trios$c149),
                        c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
 
+if (FALSE) {
+  n501y <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1V-879v4snL2hAUJR2U4UKSrieQr18egUNrbyJvjEj_I/edit#gid=706339432","Newest")
+  write_csv(n501y,here::here("data/n501y.csv"))
+}
+share_to_ratio <- function(s)1/(1/s-1)
 ratio_to_share <- function(r)1/(1+1/r)
-n501y <- read_csv(here::here("data/n501y.csv"))
+n501y <- read_csv(here::here("data/n501y.csv")) %>%
+  mutate(Date=as.Date(Date)+4,
+         ratio_voc=share_to_ratio(share_voc))
 model.n501y <- lm(log(ratio_voc)~Date,data=n501y %>% filter(as.integer(Week)>=7))
 prediction.n501y <- tibble(Date=seq(as.Date("2021-02-01"),Sys.Date(),by="day")) %>%
   mutate(share_voc = predict(model.n501y,newdata = .) %>% exp %>% ratio_to_share) 
@@ -98,8 +105,8 @@ g <- data %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
   geom_line(data=~filter(.,type=="Cleaned"),aes(color=type),size=0.5,alpha=0.5) +
-  geom_line(data=~filter(.,type=="Wild Type",Date<=max(n501y$Date)),aes(color=type),size=1) +
-  geom_line(data=~filter(.,type=="Wild Type",Date>max(n501y$Date)),aes(color=type),size=1,linetype="dotted") +
+  geom_line(data=~filter(.,type=="Wild Type",Date<=max(n501y$Date)+3),aes(color=type),size=1) +
+  geom_line(data=~filter(.,type=="Wild Type",Date>max(n501y$Date)+3),aes(color=type),size=1,linetype="dotted") +
   geom_line(data=~filter(.,type=="Trend"),aes(color=type),size=1) +
   theme_bw() +
   theme(legend.position = "bottom") +
