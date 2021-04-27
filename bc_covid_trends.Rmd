@@ -344,7 +344,7 @@ g
 ```
 
 ### Age groups
-Case prevalence by age group.
+Case incidence by age group.
 
 ```{r bc_age_groups}
 bc_pop_age <- read_csv(here::here("data/ha_pop_age.csv")) %>%
@@ -422,8 +422,8 @@ bc_cases_prevalence_date %>%
   #geom_smooth(method="lm",se=FALSE) +
   scale_color_manual(values=age_colours) +
   scale_x_date(labels=function(d)strftime(d,"%b"),breaks="month") +
-  labs(title="Relative prevalence by age group",colour="Age group",
-       x=NULL,y="Relative prevalence\n(share of cases by share of population)",
+  labs(title="Relative incidence by age group",colour="Age group",
+       x=NULL,y="Relative incidence\n(share of cases by share of population)",
        caption="MountainMath, Data: BCCDC, BC Stats Population estimates 2019")
 ```
 
