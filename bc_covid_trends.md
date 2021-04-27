@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 26 April, 2021 - 18:04
+Last updated at 26 April, 2021 - 18:19
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -30,7 +30,7 @@ repo](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.
 
 ### Age groups
 
-Case prevalence by age group.
+Case incidence by age group.
 
 <img src="bc_covid_trends_files/figure-gfm/bc_age_groups-1.png" width="1050" />
 
