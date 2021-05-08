@@ -72,12 +72,27 @@ if (FALSE) {
 }
 share_to_ratio <- function(s)1/(1/s-1)
 ratio_to_share <- function(r)1/(1+1/r)
-n501y <- read_csv(here::here("data/n501y.csv")) %>%
-  mutate(Date=as.Date(Date)+4,
-         ratio_voc=share_to_ratio(share_voc))
-model.n501y <- lm(log(ratio_voc)~Date,data=n501y %>% filter(as.integer(Week)>=7))
+n501y <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/COVID19_VoC_data.csv") %>%
+  mutate(Date=as.Date(epi_cdate)+4,
+         share_voc=prop_voc/100) %>%
+  filter(patient_ha=="British Columbia") %>%
+  select(Date,Week=epiweek,share_voc) %>%
+  mutate(ratio_voc=share_to_ratio(share_voc)) %>%
+  mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
+# n501y <- read_csv(here::here("data/n501y.csv")) %>%
+#   mutate(Date=as.Date(Date)+4,
+#          ratio_voc=share_to_ratio(share_voc)) %>%
+#   mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
+
+break_day <- n501y %>% filter(Date>=as.Date("2021-04-01")) %>% 
+                                head(1) %>% 
+                                pull(Day)
+
+model.n501y <- lm(log(ratio_voc)~Day,data=n501y%>% filter(as.integer(Week)>=7))
+model.n501y.s <- segmented::segmented(model.n501y,psi = break_day)
 prediction.n501y <- tibble(Date=seq(as.Date("2021-02-01"),Sys.Date(),by="day")) %>%
-  mutate(share_voc = predict(model.n501y,newdata = .) %>% exp %>% ratio_to_share) 
+  mutate(Day=difftime(Date,min(n501y$Date),units = "day") %>% unclass) %>%
+  mutate(share_voc = predict(model.n501y.s,newdata = .) %>% exp %>% ratio_to_share) 
 ```
 
 
@@ -115,7 +130,7 @@ g <- data %>%
               major_restrictions_y=major_restrictions_y*label_y) +
   scale_color_manual(values=c("Cases"="darkgrey","Cleaned"="darkgrey",
                               "Trend"="black","Wild Type"="steelblue"),
-                     labels=c("Cases"="Reported cases","Cleaned"="Adjused for weekly pattern",
+                     labels=c("Cases"="Reported cases","Cleaned"="Adjusted for weekly pattern",
                               "Trend"="Overall trend","Wild Type"="Wild Type")) +
   guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1,"Wild Type"=1),
                                                   shape = c("Cases"=21,"Cleaned"=NA,
