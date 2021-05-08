@@ -189,7 +189,7 @@ g <- data %>%
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown()) 
 
-g 
+g
 #r<-graph_to_s3(g,"bccovid","main-ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 
