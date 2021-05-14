@@ -66,23 +66,16 @@ full_labels <- function(label_y,
 ha_colours <- setNames(c(trios$c157,trios$c149),
                        c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
 
-if (FALSE) {
-  n501y <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1V-879v4snL2hAUJR2U4UKSrieQr18egUNrbyJvjEj_I/edit#gid=706339432","Newest")
-  write_csv(n501y,here::here("data/n501y.csv"))
-}
 share_to_ratio <- function(s)1/(1/s-1)
 ratio_to_share <- function(r)1/(1+1/r)
-n501y <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/COVID19_VoC_data.csv") %>%
+n501y <- #read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/COVID19_VoC_data.csv") %>%
+  read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
   mutate(Date=as.Date(epi_cdate)+4,
          share_voc=prop_voc/100) %>%
   filter(patient_ha=="British Columbia") %>%
   select(Date,Week=epiweek,share_voc) %>%
   mutate(ratio_voc=share_to_ratio(share_voc)) %>%
   mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
-# n501y <- read_csv(here::here("data/n501y.csv")) %>%
-#   mutate(Date=as.Date(Date)+4,
-#          ratio_voc=share_to_ratio(share_voc)) %>%
-#   mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
 
 break_day <- n501y %>% filter(Date>=as.Date("2021-04-01")) %>% 
                                 head(1) %>% 
