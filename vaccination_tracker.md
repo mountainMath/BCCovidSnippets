@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 12 May, 2021 - 18:04
+Last updated at 14 May, 2021 - 18:03
 
 Vaccinations have arrived in Canada, and the [Canada COVID-19 Data
 Working Group](https://opencovid.ca) is collecting data on vaccinations.
@@ -83,3 +83,7 @@ focused on vulnerable populations, we can probably increase contacts
 significantly more without increasing deaths, although this will likely
 have detrimental effects on morbidity. (If this sounds really cynical
 and like a terrible idea, that’s probably because it is.)
+
+## Age-specific vaccination progress
+
+<img src="vaccination_tracker_files/figure-gfm/unnamed-chunk-4-1.png" width="900" />
