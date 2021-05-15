@@ -135,7 +135,6 @@ If your goal is to use vaccinations to reduce deaths and morbidity, the share of
 If your goal is to use vaccinations to keep deaths and morbidity roughly constant and instead open up faster, the share gives a rough indicator of by how much we can increase contacts a month from now when the vaccines take full effect. Again, because vaccinations are initially focused on vulnerable populations, we can probably increase contacts significantly more without increasing deaths, although this will likely have detrimental effects on morbidity. (If this sounds really cynical and like a terrible idea, that's probably because it is.)
 
 ## Age-specific vaccination progress
-[Blake Shaffer made a nice vaccine visualization](https://twitter.com/bcshaffer/status/1386799473972572163) for age-specific vaccination rates that we like, so we are shamelessly reproducing it here to auto-update.
 
 ```{r}
 age_levels <- c("fill1","fill2","fill3","0-17", "18-49", "50-59", "60-69", "70-79", "80+")
@@ -175,16 +174,16 @@ geo_levels <- pop %>% select(GEO,Total) %>% unique %>% arrange(Total) %>% pull(G
 vaccine_age <- read_csv("https://health-infobase.canada.ca/src/data/covidLive/vaccination-coverage-byAgeAndSex.csv",col_types = cols(.default="c")) %>%
     mutate_at(vars(matches("num")),as.numeric)
 
-dose_levels <- c("2 doses","1st dose","Unvaccinated")
+dose_levels <- c("Fully vaccinated","Partially vaccinated","Unvaccinated")
 
 plot_data <- vaccine_age %>%
   filter(week_end==max(week_end)) %>%
   filter(!(age %in% c("Unknown", "Not reported"))) %>%
   group_by(pruid,prename,age) %>%
-  summarize(`1st dose`=sum(numtotal_1dose,na.rm=TRUE),
-            `2 doses`=sum(numtotal_2doses,na.rm=TRUE)) %>%
+  summarize(`Partially vaccinated`=sum(numtotal_partially,na.rm=TRUE),
+            `Fully vaccinated`=sum(numtotal_fully,na.rm=TRUE)) %>%
   left_join(pop,by=c("pruid"="GeoUID","age"="age")) %>%
-  pivot_longer(c("1st dose","2 doses")) %>%
+  pivot_longer(c("Partially vaccinated","Fully vaccinated")) %>%
   mutate(share=value/Value) %>%
   bind_rows((.) %>% group_by(pruid,GEO,prename,age) %>% 
               summarize(share=1-sum(share),.groups="drop") %>% 
@@ -196,7 +195,10 @@ plot_data <- vaccine_age %>%
   group_by(pruid,age) %>%
   mutate(share=share/sum(share)) %>%
   fill(Value,Total)
+```
 
+
+```{r eval=FALSE, include=FALSE}
 plot_data %>%
   #filter(!(pruid %in% c("12","61"))) %>%
   ggplot(aes(x=share,y=age,fill=name)) +
@@ -222,7 +224,9 @@ plot_data %>%
        caption="PHAC, StatCan table 17-10-0005")
 ```
 
-```{r fig.height=2.5, fig.width=3}
+
+
+```{r fig.height=5, fig.width=6}
 pd <- plot_data %>%
   mutate(pop_share=Value/Total) %>%
   group_by(pruid,name) %>%
@@ -237,16 +241,12 @@ pd <- plot_data %>%
   mutate(min_share=coalesce(min_share,0)) 
   
 
-
-hi <- tibble(name=c("Wild type","VOC"),R_0=c(2.6,3.9)) %>%
-  mutate(naive=1-1/(R_0*0.75)) %>%
-  mutate(min=naive/0.8,max=naive/0.95)
-
-library(ggpattern)
-#ggplot(pd %>% filter(GEO=="British Columbia")) +
-ggplot(pd %>% filter(GEO %in% c("British Columbia"))) +
-  theme_bw() +
+pd %>% 
+  filter(GEO %in% c("British Columbia")) %>%
+mutate_at(c("pop_min","pop_max"),function(d)1-d) %>%
+ggplot() +
   geom_rect(aes(xmin = pop_min, xmax = pop_max, ymax = max_share, ymin=min_share, fill = name)) +
+  theme_bw() +
   scale_fill_brewer(palette = "YlGn") +
   facet_wrap("GEO") +
   scale_y_continuous(labels=scales::percent) +
@@ -258,11 +258,8 @@ ggplot(pd %>% filter(GEO %in% c("British Columbia"))) +
   geom_text(data=~filter(.,name=="Unvaccinated"),
             aes(x=(pop_min+pop_max)/2,y=0,label=age),nudge_y = -0.05) +
   geom_vline(aes(xintercept = pop_min)) +
-  geom_rect_pattern(data=hi,aes(xmin=0,xmax=1,ymin=min,ymax=max,pattern=name),fill=NA,color="black",
-                    pattern_density=0.1,pattern_spacing=0.01) +
-  scale_pattern_manual(values=c("VOC"="crosshatch","Wild type"="circle"))+
-  labs(x=NULL,y=NULL,fill=NULL,pattern="Minimum herd immunity range\n(depending on share of 2nd doses)",
-       title="Vaccination status by age group",
+  labs(x=NULL,y=NULL,fill=NULL,
+       title=paste0("Vaccination status by age group as of ",max(vaccine_age$week_end)),
        caption="PHAC, StatCan table 17-10-0005")
 
 ggsave("~/Desktop/vaccination_bc.png",width=7.5,height=5.5)
