@@ -17,6 +17,8 @@ knitr::opts_chunk$set(
 )
 library(dplyr)
 library(ggplot2)
+library(readr)
+library(tidyr)
 library(CanCovidData)
 library(cansim)
 source(here::here("R/helpers.R"))
@@ -261,8 +263,6 @@ ggplot() +
   labs(x=NULL,y=NULL,fill=NULL,
        title=paste0("Vaccination status by age group as of ",max(vaccine_age$week_end)),
        caption="PHAC, StatCan table 17-10-0005")
-
-ggsave("~/Desktop/vaccination_bc.png",width=7.5,height=5.5)
 ```
 
 
