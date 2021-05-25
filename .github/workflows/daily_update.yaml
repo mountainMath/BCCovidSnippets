@@ -44,6 +44,7 @@ jobs:
           install.packages("rvest")
           install.packages("segmented")
           install.packages("sf",type="binary")
+          remotes::install_github("mountainMath/cansim")
           remotes::install_github("mountainMath/CanCovidData")
         shell: Rscript {0}
       - name: Render BC Trends
