@@ -78,7 +78,7 @@ g <- vaccination_data %>%
   filter(shortProvince %in% provinces) %>%
   #filter(total_vaccinations>0) %>%
   ggplot(aes(x=Date,y=value,fill=name)) +
-  geom_bar(stat="identity",position="stack") +
+  geom_area(stat="identity",position="stack") +
   facet_wrap("Province") +
   scale_y_continuous() +
   theme_bw() +
@@ -98,7 +98,7 @@ From an immunization point of view it's more important what share of the populat
 g <- vaccination_data %>%
   filter(cumulative_cvaccine>0) %>%
   ggplot(aes(x=Date,y=cumulative_cvaccine/Population)) +
-  geom_bar(stat="identity",fill="purple") +
+  geom_area(stat="identity",fill="purple") +
   facet_wrap("Province") +
   scale_y_continuous(labels=scales::percent) +
   theme_bw() +
@@ -121,7 +121,7 @@ vaccination_data %>%
   mutate(name=factor(name,levels=c("First dose","Both doses"))) %>%
   mutate(Share=value/Population) %>%
   ggplot(aes(x=Date,y=Share,fill=name)) +
-  geom_bar(stat="identity",position="stack") +
+  geom_area(stat="identity",position="stack") +
   facet_wrap("Province") +
   scale_y_continuous(labels=scales::percent) +
   theme_bw() +
@@ -139,11 +139,14 @@ If your goal is to use vaccinations to keep deaths and morbidity roughly constan
 ## Age-specific vaccination progress
 
 ```{r}
-age_levels <- c("fill1","fill2","fill3","0-17", "18-49", "50-59", "60-69", "70-79", "80+")
+age_levels <- c("fill1","fill2","fill3","0-17", "18-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
 age1 <- c("0 to 4 years","5 to 9 years","10 to 14 years","15 years", "16 years", "17 years")
 age2 <- c("18 years", "19 years", "20 to 24 years" , "25 to 29 years",
           "30 to 34 years" , "35 to 39 years", "40 to 44 years" , "45 to 49 years")
+age2.1 <- c("18 years", "19 years", "20 to 24 years" , "25 to 29 years")
+age2.2 <- c("30 to 34 years" , "35 to 39 years")
+age2.3 <- c("40 to 44 years" , "45 to 49 years")
 age3 <- c("50 to 54 years" , "55 to 59 years")
 age4 <- c("60 to 64 years" , "65 to 69 years")
 age5 <- c("70 to 74 years")
@@ -155,7 +158,9 @@ pop <- get_cansim("17-10-0005") %>%
   normalize_cansim_values() %>%
   filter(Date==max(Date),Sex=="Both sexes") %>%
   mutate(age=case_when(`Age group` %in% age1 ~ "0-17",
-                       `Age group` %in% age2 ~ "18-49",
+                       `Age group` %in% age2.1 ~ "18-29",
+                       `Age group` %in% age2.2 ~ "30-39",
+                       `Age group` %in% age2.3 ~ "40-49",
                        `Age group` %in% age3 ~ "50-59",
                        `Age group` %in% age4 ~ "60-69",
                        `Age group` %in% c(age5,age6) ~ "70-79",
@@ -173,14 +178,14 @@ pop <- get_cansim("17-10-0005") %>%
 
 geo_levels <- pop %>% select(GEO,Total) %>% unique %>% arrange(Total) %>% pull(GEO)
 
-vaccine_age <- read_csv("https://health-infobase.canada.ca/src/data/covidLive/vaccination-coverage-byAgeAndSex.csv",col_types = cols(.default="c")) %>%
+vaccine_age <- read_csv("https://health-infobase.canada.ca/src/data/covidLive/vaccination-coverage-byAgeAndSex.csv",col_types = cols(.default="c"),na = c("", "NA","na")) %>%
     mutate_at(vars(matches("num")),as.numeric)
 
 dose_levels <- c("Fully vaccinated","Partially vaccinated","Unvaccinated")
 
 plot_data <- vaccine_age %>%
   filter(week_end==max(week_end)) %>%
-  filter(!(age %in% c("Unknown", "Not reported"))) %>%
+  filter(!(age %in% c("Unknown", "Not reported","All Ages"))) %>%
   group_by(pruid,prename,age) %>%
   summarize(`Partially vaccinated`=sum(numtotal_partially,na.rm=TRUE),
             `Fully vaccinated`=sum(numtotal_fully,na.rm=TRUE)) %>%
@@ -197,38 +202,7 @@ plot_data <- vaccine_age %>%
   group_by(pruid,age) %>%
   mutate(share=share/sum(share)) %>%
   fill(Value,Total)
-```
 
-
-```{r eval=FALSE, include=FALSE}
-plot_data %>%
-  #filter(!(pruid %in% c("12","61"))) %>%
-  ggplot(aes(x=share,y=age,fill=name)) +
-  geom_bar(stat="identity") +
-  coord_polar() +
-  expand_limits(y=c(-3,0)) +
-  #geom_vline(xintercept = 0) +
-  geom_segment(x=0,xend=0,y=0.5,yend=6.5,inherit.aes = FALSE) +
-  theme_bw() +
-  #scale_fill_manual(values=sanzo::trios$c174) +
-  scale_fill_brewer(palette = "YlOrRd") +
-  theme(axis.line = element_blank(),
-        axis.text = element_blank(),
-        axis.ticks = element_blank()) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
-  facet_wrap("GEO") +
-  geom_text(data=tibble(age=factor(age_levels,levels=age_levels),share=0,name="Unvaccinated") %>%
-              filter(!grepl("fill",age)),
-            aes(label=age), hjust = 1.1,size=3) +
-  theme(legend.position = "bottom") +
-  labs(x=NULL,y=NULL,fill=NULL,
-       title="Vaccination status by age group in Canada",
-       caption="PHAC, StatCan table 17-10-0005")
-```
-
-
-
-```{r fig.height=5, fig.width=6}
 pd <- plot_data %>%
   mutate(pop_share=Value/Total) %>%
   group_by(pruid,name) %>%
@@ -242,13 +216,111 @@ pd <- plot_data %>%
   mutate(min_share=lead(max_share,order_by = name)) %>%
   mutate(min_share=coalesce(min_share,0)) 
   
+pr <- "British Columbia"
+
+mean_vaccine_level_d <- pd %>%
+  filter(prename==pr) %>%
+  filter(name!="Unvaccinated") %>%
+  group_by(age) %>%
+  summarize(fd=sum(value),pop=first(Value),.groups="drop") %>%
+  ungroup() %>%
+  summarize(pop=sum(pop),fd=sum(fd)) %>%
+  mutate(share=fd/pop) 
+
+mean_vaccine_level <- mean_vaccine_level_d$share
+
+world_vaccine <- read_csv("https://covid.ourworldindata.org/data/owid-covid-data.csv")
+
+vaccine_comparison_table<-world_vaccine %>%
+  filter(iso_code %in% c("GBR","ISR","USA"),
+         !is.na(people_vaccinated_per_hundred),
+         !is.na(people_fully_vaccinated_per_hundred)) %>%
+  select(Date=date,Region=location,`Partially vaccinated`=people_vaccinated_per_hundred,
+         `Fully vaccinated`=people_fully_vaccinated_per_hundred) %>%
+  group_by(Region) %>%
+  filter(Date==max(Date)) %>%
+  mutate(`Partially vaccinated`=`Partially vaccinated`-`Fully vaccinated`) %>%
+  mutate_at(vars(matches("vaccinated")),function(d)d/100)
+
+uk_mean <- world_vaccine %>% 
+  filter(iso_code=="GBR",
+         !is.na(people_vaccinated_per_hundred)) %>% 
+  filter(date==max(date)) %>%
+  mutate(r=people_vaccinated_per_hundred/100,
+         rf=people_fully_vaccinated_per_hundred/100) 
+is_mean <- world_vaccine %>% 
+  filter(iso_code=="ISR",
+         !is.na(people_vaccinated_per_hundred)) %>% 
+  filter(date==max(date)) %>%
+  mutate(r=people_vaccinated_per_hundred/100,
+          rf=people_fully_vaccinated_per_hundred/100) 
+
+bc_av <- get_canada_covid_working_group_timeseries(type="avaccine") %>%
+  filter(Province==pr) 
+bc_cv <- get_canada_covid_working_group_timeseries(type="cvaccine") %>%
+  filter(Province==pr)
+bc_current <- (max(bc_av$cumulative_avaccine) - max(bc_cv$cumulative_cvaccine))/mean_vaccine_level_d$pop
+bc_current_f <- (max(bc_cv$cumulative_cvaccine))/mean_vaccine_level_d$pop
+
+bc_current_date <- bc_cv$date_vaccine_completed %>% max
+
+vaccine_comparison <- tibble(Region=c("British Columbia","United Kingdom","Israel"),
+                             `Fully vaccintated`=c(bc_current_f,uk_mean$rf,is_mean$rf),
+                             `Partially vaccinated`=c(bc_current-bc_current_f,
+                                                      uk_mean$r-uk_mean$rf,
+                                                      is_mean$r-is_mean$rf)) %>%
+  mutate(Unvaccinated=1-`Fully vaccintated`-`Partially vaccinated`) %>%
+  pivot_longer(-Region) %>%
+  mutate(Region=factor(Region,levels=c("British Columbia","United Kingdom","Israel"))) %>%
+  mutate(name-factor(name,levels=c("Fully vaccintated","Partially vaccinated","Unvaccinated")))
+
+vaccine_comparison <- tibble(Region=c("British Columbia"),
+                             Date=bc_current_date,
+                             `Fully vaccinated`=c(bc_current_f),
+                             `Partially vaccinated`=c(bc_current-bc_current_f)) %>%
+  bind_rows(vaccine_comparison_table) %>%
+  mutate(Unvaccinated=1-`Fully vaccinated`-`Partially vaccinated`) %>%
+  pivot_longer(matches("vaccinated")) %>%
+  mutate(Region=factor(Region,levels=c("British Columbia","United Kingdom","United States","Israel"))) %>%
+  mutate(name=factor(name,levels=c("Fully vaccinated","Partially vaccinated","Unvaccinated") %>% rev))
+```
+
+
+
+
+
+
+```{r fig.height=5, fig.width=6}
+g<-ggplot(vaccine_comparison,aes(x=Region,y=value,fill=name)) +
+  geom_bar(stat="identity") +
+  theme_bw() +
+  scale_y_continuous(labels = scales::percent) +
+  coord_flip() +
+  scale_fill_manual(values=RColorBrewer::brewer.pal(3,"YlGn"), guide=FALSE) +#sanzo::duos$c047 %>% rev) +
+  expand_limits(y=c(0,1)) +
+  theme(legend.position = "bottom",
+        plot.background = element_rect(colour = "black",size=1)) +
+  labs(#title="Vaccination progress international comparison",
+       x=NULL,
+       y=NULL,
+       #y="Share of population", 
+       fill=NULL,
+       caption=NULL#"Data: PHAC, Our World in Data"
+       )
+
+label_data <- tibble(y=c(mean_vaccine_level_d$share,bc_current,uk_mean$r,is_mean$r),
+                     labels=c(paste0("BC average\n as of ",max(vaccine_age$week_end)),
+                              paste0("BC average\n as of ",bc_current_date),
+                              "UK average",
+                              "Israel average"))
+
 
 pd %>% 
   filter(GEO %in% c("British Columbia")) %>%
-mutate_at(c("pop_min","pop_max"),function(d)1-d) %>%
+  mutate_at(c("pop_min","pop_max"),function(d)1-d) %>%
 ggplot() +
-  geom_rect(aes(xmin = pop_min, xmax = pop_max, ymax = max_share, ymin=min_share, fill = name)) +
   theme_bw() +
+  geom_rect(aes(xmin = pop_min, xmax = pop_max, ymax = max_share, ymin=min_share, fill = name)) +
   scale_fill_brewer(palette = "YlGn") +
   facet_wrap("GEO") +
   scale_y_continuous(labels=scales::percent) +
@@ -256,13 +328,14 @@ ggplot() +
   theme(axis.line.x = element_blank(),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank()) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) +
+  theme(panel.grid.major.x = element_blank(), panel.grid.minor.x = element_blank()) +
   geom_text(data=~filter(.,name=="Unvaccinated"),
             aes(x=(pop_min+pop_max)/2,y=0,label=age),nudge_y = -0.05) +
   geom_vline(aes(xintercept = pop_min)) +
-  labs(x=NULL,y=NULL,fill=NULL,
+  labs(x=NULL,y=NULL,fill=NULL,pattern="Minimum herd immunity range\n(depending on share of 2nd doses)",
        title=paste0("Vaccination status by age group as of ",max(vaccine_age$week_end)),
-       caption="PHAC, StatCan table 17-10-0005")
+       caption="Data: PHAC, StatCan Table 17-10-0005, Our World in Data") +
+  patchwork::inset_element(g, 0.05, 0.6, 0.4, 0.95)
 ```
 
 
