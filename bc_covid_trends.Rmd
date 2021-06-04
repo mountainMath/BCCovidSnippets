@@ -68,16 +68,16 @@ ha_colours <- setNames(c(trios$c157,trios$c149),
 
 share_to_ratio <- function(s)1/(1/s-1)
 ratio_to_share <- function(r)1/(1+1/r)
-n501y <- #read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/COVID19_VoC_data.csv") %>%
+n501y <- #read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/Figure1_weeklyreport_data.csv") %>%
   read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
-  bind_rows(tibble(epi_cdate=as.Date(c("2021-05-02","2021-05-09")),
-                   prop_voc=c(83,85),
-                   epiweek=c(18,19),
-                   patient_ha="British Columbia")) %>%
-  mutate(Date=as.Date(epi_cdate)+4,
-         share_voc=prop_voc/100) %>%
-  filter(patient_ha=="British Columbia") %>%
-  select(Date,Week=epiweek,share_voc) %>%
+  # bind_rows(tibble(epi_cdate=as.Date(c("2021-05-02","2021-05-09")),
+  #                  prop_voc=c(83,85),
+  #                  epiweek=c(18,19),
+  #                  patient_ha="British Columbia")) %>%
+  mutate(Date=as.Date(`Epiweek - Start Date`)+4,
+         share_voc=`Proportion of VoC`/100) %>%
+  filter(Region=="British Columbia") %>%
+  select(Date,Week=Epiweek,share_voc) %>%
   mutate(ratio_voc=share_to_ratio(share_voc)) %>%
   mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
 
