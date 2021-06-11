@@ -185,7 +185,7 @@ dose_levels <- c("Fully vaccinated","Partially vaccinated","Unvaccinated")
 
 plot_data <- vaccine_age %>%
   filter(week_end==max(week_end)) %>%
-  filter(!(age %in% c("Unknown", "Not reported","All Ages"))) %>%
+  filter(age %in% age_levels) %>%
   group_by(pruid,prename,age) %>%
   summarize(`Partially vaccinated`=sum(numtotal_partially,na.rm=TRUE),
             `Fully vaccinated`=sum(numtotal_fully,na.rm=TRUE)) %>%
