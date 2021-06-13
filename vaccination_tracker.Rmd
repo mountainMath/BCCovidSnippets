@@ -139,9 +139,11 @@ If your goal is to use vaccinations to keep deaths and morbidity roughly constan
 ## Age-specific vaccination progress
 
 ```{r}
-age_levels <- c("fill1","fill2","fill3","0-17", "18-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+age_levels <- c("fill1","fill2","fill3","0-11", "12-17", "18-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
 age1 <- c("0 to 4 years","5 to 9 years","10 to 14 years","15 years", "16 years", "17 years")
+age1.1 <- c("0 to 4 years","5 to 9 years","10 years","11 years")
+age1.2 <- c("12 years","13 years","14 years","15 years", "16 years", "17 years")
 age2 <- c("18 years", "19 years", "20 to 24 years" , "25 to 29 years",
           "30 to 34 years" , "35 to 39 years", "40 to 44 years" , "45 to 49 years")
 age2.1 <- c("18 years", "19 years", "20 to 24 years" , "25 to 29 years")
@@ -157,7 +159,8 @@ age7 <- c("80 to 84 years","85 to 89 years","90 years and over")
 pop <- get_cansim("17-10-0005") %>%
   normalize_cansim_values() %>%
   filter(Date==max(Date),Sex=="Both sexes") %>%
-  mutate(age=case_when(`Age group` %in% age1 ~ "0-17",
+  mutate(age=case_when(`Age group` %in% age1.1 ~ "0-11",
+                       `Age group` %in% age1.2 ~ "12-17",
                        `Age group` %in% age2.1 ~ "18-29",
                        `Age group` %in% age2.2 ~ "30-39",
                        `Age group` %in% age2.3 ~ "40-49",
@@ -242,18 +245,6 @@ vaccine_comparison_table<-world_vaccine %>%
   mutate(`Partially vaccinated`=`Partially vaccinated`-`Fully vaccinated`) %>%
   mutate_at(vars(matches("vaccinated")),function(d)d/100)
 
-uk_mean <- world_vaccine %>% 
-  filter(iso_code=="GBR",
-         !is.na(people_vaccinated_per_hundred)) %>% 
-  filter(date==max(date)) %>%
-  mutate(r=people_vaccinated_per_hundred/100,
-         rf=people_fully_vaccinated_per_hundred/100) 
-is_mean <- world_vaccine %>% 
-  filter(iso_code=="ISR",
-         !is.na(people_vaccinated_per_hundred)) %>% 
-  filter(date==max(date)) %>%
-  mutate(r=people_vaccinated_per_hundred/100,
-          rf=people_fully_vaccinated_per_hundred/100) 
 
 bc_av <- get_canada_covid_working_group_timeseries(type="avaccine") %>%
   filter(Province==pr) 
@@ -264,15 +255,6 @@ bc_current_f <- (max(bc_cv$cumulative_cvaccine))/mean_vaccine_level_d$pop
 
 bc_current_date <- bc_cv$date_vaccine_completed %>% max
 
-vaccine_comparison <- tibble(Region=c("British Columbia","United Kingdom","Israel"),
-                             `Fully vaccintated`=c(bc_current_f,uk_mean$rf,is_mean$rf),
-                             `Partially vaccinated`=c(bc_current-bc_current_f,
-                                                      uk_mean$r-uk_mean$rf,
-                                                      is_mean$r-is_mean$rf)) %>%
-  mutate(Unvaccinated=1-`Fully vaccintated`-`Partially vaccinated`) %>%
-  pivot_longer(-Region) %>%
-  mutate(Region=factor(Region,levels=c("British Columbia","United Kingdom","Israel"))) %>%
-  mutate(name-factor(name,levels=c("Fully vaccintated","Partially vaccinated","Unvaccinated")))
 
 vaccine_comparison <- tibble(Region=c("British Columbia"),
                              Date=bc_current_date,
@@ -299,7 +281,8 @@ g<-ggplot(vaccine_comparison,aes(x=Region,y=value,fill=name)) +
   scale_fill_manual(values=RColorBrewer::brewer.pal(3,"YlGn"), guide=FALSE) +#sanzo::duos$c047 %>% rev) +
   expand_limits(y=c(0,1)) +
   theme(legend.position = "bottom",
-        plot.background = element_rect(colour = "black",size=1)) +
+        plot.background = element_rect(colour = "black",size=1),
+        axis.text = element_text(size=5)) +
   labs(#title="Vaccination progress international comparison",
        x=NULL,
        y=NULL,
@@ -307,12 +290,6 @@ g<-ggplot(vaccine_comparison,aes(x=Region,y=value,fill=name)) +
        fill=NULL,
        caption=NULL#"Data: PHAC, Our World in Data"
        )
-
-label_data <- tibble(y=c(mean_vaccine_level_d$share,bc_current,uk_mean$r,is_mean$r),
-                     labels=c(paste0("BC average\n as of ",max(vaccine_age$week_end)),
-                              paste0("BC average\n as of ",bc_current_date),
-                              "UK average",
-                              "Israel average"))
 
 
 pd %>% 
@@ -335,7 +312,7 @@ ggplot() +
   labs(x=NULL,y=NULL,fill=NULL,pattern="Minimum herd immunity range\n(depending on share of 2nd doses)",
        title=paste0("Vaccination status by age group as of ",max(vaccine_age$week_end)),
        caption="Data: PHAC, StatCan Table 17-10-0005, Our World in Data") +
-  patchwork::inset_element(g, 0.05, 0.6, 0.4, 0.95)
+  patchwork::inset_element(g, 0.05, 0.65, 0.4, 0.95)
 ```
 
 
