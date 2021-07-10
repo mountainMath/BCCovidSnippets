@@ -1,7 +1,7 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 09 July, 2021 - 18:11
+Last updated at 10 July, 2021 - 16:48
 
 Vaccinations have arrived in Canada, and the [Canada COVID-19 Data
 Working Group](https://opencovid.ca) is collecting data on vaccinations.
