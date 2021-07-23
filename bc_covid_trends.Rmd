@@ -115,7 +115,8 @@ data <- get_british_columbia_case_data() %>%
 label_y <- max(data$Cases) * 0.9
 
 g <- data %>% 
-  pivot_longer(c("Cases","Trend","Cleaned","Wild Type"),names_to="type",values_to="count") %>%
+  pivot_longer(c("Cases","Trend","Cleaned"),#"Wild Type"),
+               names_to="type",values_to="count") %>%
   #filter(Date>=as.Date("2020-11-01")) %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
@@ -129,9 +130,9 @@ g <- data %>%
   full_labels(label_y,major_restriction_labels=major_restriction_labels,
               major_restrictions_y=major_restrictions_y*label_y) +
   scale_color_manual(values=c("Cases"="darkgrey","Cleaned"="darkgrey",
-                              "Trend"="black","Wild Type"="steelblue"),
+                              "Trend"="black"),#,"Wild Type"="steelblue"),
                      labels=c("Cases"="Reported cases","Cleaned"="Adjusted for weekly pattern",
-                              "Trend"="Overall trend","Wild Type"="Wild Type")) +
+                              "Trend"="Overall trend")) + #,"Wild Type"="Wild Type")) +
   guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1),#"Wild Type"=1),
                                                   shape = c("Cases"=21,"Cleaned"=NA,
                                                             "Trend"=NA)))) +#"Wild Type"=NA)) )) +
@@ -154,7 +155,8 @@ Real development in case data differs from pure exponential growth in three impo
 
 ```{r bc-trend-log}
 g <- data %>% 
-  pivot_longer(c("Cases","Trend","Cleaned","Wild Type"),names_to="type",values_to="count") %>%
+  pivot_longer(c("Cases","Trend","Cleaned"),#"Wild Type"),
+               names_to="type",values_to="count") %>%
   #filter(Date>=as.Date("2020-11-01")) %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
@@ -168,9 +170,9 @@ g <- data %>%
   full_labels(label_y,major_restriction_labels=major_restriction_labels,
               major_restrictions_y=major_restrictions_y*200) +
   scale_color_manual(values=c("Cases"="darkgrey","Cleaned"="darkgrey",
-                              "Trend"="black","Wild Type"="steelblue"),
+                              "Trend"="black"),#,"Wild Type"="steelblue"),
                      labels=c("Cases"="Reported cases","Cleaned"="Adjusted for weekly pattern",
-                              "Trend"="Overall trend","Wild Type"="Wild Type")) +
+                              "Trend"="Overall trend")) + #,"Wild Type"="Wild Type")) +
   guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1),#"Wild Type"=1),
                                                   shape = c("Cases"=21,"Cleaned"=NA,
                                                             "Trend"=NA)))) +#"Wild Type"=NA)) )) +
