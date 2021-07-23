@@ -265,6 +265,8 @@ vaccine_comparison <- tibble(Region=c("British Columbia"),
   pivot_longer(matches("vaccinated")) %>%
   mutate(Region=factor(Region,levels=c("British Columbia","United Kingdom","United States","Israel"))) %>%
   mutate(name=factor(name,levels=c("Fully vaccinated","Partially vaccinated","Unvaccinated") %>% rev))
+
+vaccine_colours <- setNames(RColorBrewer::brewer.pal(3,"YlGn") %>% rev,c("Fully vaccinated","Partially vaccinated","Unvaccinated"))
 ```
 
 
@@ -273,12 +275,14 @@ vaccine_comparison <- tibble(Region=c("British Columbia"),
 
 
 ```{r fig.height=5, fig.width=6}
-g<-ggplot(vaccine_comparison,aes(x=Region,y=value,fill=name)) +
+g<-vaccine_comparison %>%
+  mutate(Region=factor(Region,levels=filter(.,name=="Fully vaccinated") %>%arrange(value) %>% pull(Region))) %>%
+  ggplot(aes(x=Region,y=value,fill=name)) +
   geom_bar(stat="identity") +
   theme_bw() +
   scale_y_continuous(labels = scales::percent) +
   coord_flip() +
-  scale_fill_manual(values=RColorBrewer::brewer.pal(3,"YlGn"), guide=FALSE) +#sanzo::duos$c047 %>% rev) +
+  scale_fill_manual(values=vaccine_colours, guide=FALSE) +#sanzo::duos$c047 %>% rev) +
   expand_limits(y=c(0,1)) +
   theme(legend.position = "bottom",
         plot.background = element_rect(colour = "black",size=1),
@@ -298,7 +302,8 @@ pd %>%
 ggplot() +
   theme_bw() +
   geom_rect(aes(xmin = pop_min, xmax = pop_max, ymax = max_share, ymin=min_share, fill = name)) +
-  scale_fill_brewer(palette = "YlGn") +
+  scale_fill_manual(values=vaccine_colours) +
+  #scale_fill_brewer(palette = "YlGn") +
   facet_wrap("GEO") +
   scale_y_continuous(labels=scales::percent) +
   theme(legend.position = "bottom") +
@@ -312,7 +317,7 @@ ggplot() +
   labs(x=NULL,y=NULL,fill=NULL,pattern="Minimum herd immunity range\n(depending on share of 2nd doses)",
        title=paste0("Vaccination status by age group as of ",max(vaccine_age$week_end)),
        caption="Data: PHAC, StatCan Table 17-10-0005, Our World in Data") +
-  patchwork::inset_element(g, 0.05, 0.65, 0.4, 0.95)
+  patchwork::inset_element(g, 0.65, 0.1, 0.95, 0.4)
 ```
 
 

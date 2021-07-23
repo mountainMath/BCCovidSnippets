@@ -120,8 +120,8 @@ g <- data %>%
   ggplot(aes(x = Date, y = count)) + 
   geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
   geom_line(data=~filter(.,type=="Cleaned"),aes(color=type),size=0.5,alpha=0.5) +
-  geom_line(data=~filter(.,type=="Wild Type",Date<=max(n501y$Date)+3),aes(color=type),size=1) +
-  geom_line(data=~filter(.,type=="Wild Type",Date>max(n501y$Date)+3),aes(color=type),size=1,linetype="dotted") +
+  #geom_line(data=~filter(.,type=="Wild Type",Date<=max(n501y$Date)+3),aes(color=type),size=1) +
+  #geom_line(data=~filter(.,type=="Wild Type",Date>max(n501y$Date)+3),aes(color=type),size=1,linetype="dotted") +
   geom_line(data=~filter(.,type=="Trend"),aes(color=type),size=1) +
   theme_bw() +
   theme(legend.position = "bottom") +
@@ -132,9 +132,9 @@ g <- data %>%
                               "Trend"="black","Wild Type"="steelblue"),
                      labels=c("Cases"="Reported cases","Cleaned"="Adjusted for weekly pattern",
                               "Trend"="Overall trend","Wild Type"="Wild Type")) +
-  guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1,"Wild Type"=1),
+  guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1),#"Wild Type"=1),
                                                   shape = c("Cases"=21,"Cleaned"=NA,
-                                                            "Trend"=NA,"Wild Type"=NA)) )) +
+                                                            "Trend"=NA)))) +#"Wild Type"=NA)) )) +
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",
                     strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
@@ -142,6 +142,48 @@ g <- data %>%
   theme(plot.subtitle = element_markdown())
 g
 #r<-graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+```
+## Log scale
+The underlying process that generates case data is, to first approximation, exponential. Plotting cases on a log scale makes it easier to spot trends.
+
+Real development in case data differs from pure exponential growth in three important ways:
+* Change in NPI via change regulation or change in behaviour impacts the trajectory. In BC behaviour has been generally fairly constant over longer time periods, with changes initiated by changes in public health regulations. These changes in increase or decrease the growth rate. (Growth can be negative or positive.)
+* Increasing vaccinations lead do sub-exponential growth, on a log plot the case numbers will bend downward.
+* Changing mix in COVID variants, this will lead to faster than exponential growth. When some variants are more transmissibly than others and thus incease their share among the cases, the effective rate of growth of cases will accelerate and the cases will bend upwards on a log plot. This is because each variant should be modelled as a separate exponential process, and the sum of exponential processes is not an exponential process. In the long run, the more transmissible variant will take over and the growth rate will follow a simple exponential growth model with growth rate given by the more transmissible variant.
+
+
+```{r bc-trend-log}
+g <- data %>% 
+  pivot_longer(c("Cases","Trend","Cleaned","Wild Type"),names_to="type",values_to="count") %>%
+  #filter(Date>=as.Date("2020-11-01")) %>%
+  ggplot(aes(x = Date, y = count)) + 
+  geom_point(data=~filter(.,type=="Cases"),aes(color=type),size=0.5,shape=21) +
+  geom_line(data=~filter(.,type=="Cleaned"),aes(color=type),size=0.5,alpha=0.5) +
+  #geom_line(data=~filter(.,type=="Wild Type",Date<=max(n501y$Date)+3),aes(color=type),size=1) +
+  #geom_line(data=~filter(.,type=="Wild Type",Date>max(n501y$Date)+3),aes(color=type),size=1,linetype="dotted") +
+  geom_line(data=~filter(.,type=="Trend"),aes(color=type),size=1) +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
+  full_labels(label_y,major_restriction_labels=major_restriction_labels,
+              major_restrictions_y=major_restrictions_y*200) +
+  scale_color_manual(values=c("Cases"="darkgrey","Cleaned"="darkgrey",
+                              "Trend"="black","Wild Type"="steelblue"),
+                     labels=c("Cases"="Reported cases","Cleaned"="Adjusted for weekly pattern",
+                              "Trend"="Overall trend","Wild Type"="Wild Type")) +
+  guides(color = guide_legend(override.aes = list(linetype = c("Cases"=0, "Cleaned"=1,"Trend"=1),#"Wild Type"=1),
+                                                  shape = c("Cases"=21,"Cleaned"=NA,
+                                                            "Trend"=NA)))) +#"Wild Type"=NA)) )) +
+  labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",
+                    strftime(max(data$Date),"%a %b %d"),")"),
+       subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
+       x=NULL,y="Number of daily cases",color=NULL,caption="MountainMath, Data: BCCDC") +
+  theme(plot.subtitle = element_markdown()) +
+    scale_y_continuous(trans="log",
+                       breaks=c(2,4,8,16,32,64,128,256,512,1024)) +
+  coord_cartesian(ylim=c(4,1400),xlim=c(as.Date("2020-05-15"),NA)) +
+  labs(y="Number of daily cases (log scale)")
+g
 ```
 
 
