@@ -227,7 +227,7 @@ g <- data %>%
   full_labels(label_y,
               major_restriction_labels=c("2020-03-18"="Phase 1"),
               major_restrictions_y=label_y) +
-  scale_color_manual(values=ha_colours) +
+  scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
@@ -278,7 +278,7 @@ g <- data %>%
   full_labels(label_y,
               major_restriction_labels=c("2020-03-18"="Phase 1"),
               major_restrictions_y=label_y) +
-  scale_color_manual(values=ha_colours) +
+  scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
