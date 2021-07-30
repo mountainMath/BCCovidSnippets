@@ -289,7 +289,7 @@ g
 ```
 A log plot helps identify trends.
 
-```{r}
+```{r ha-trend-log}
 g+  scale_y_continuous(trans="log", breaks=0.05*2^seq(1,10)) +
   labs(y="Daily cases per 100k population (log scale)") +
   coord_cartesian(ylim=c(0.1,NA),xlim=c(as.Date("2020-05-15"),NA))
