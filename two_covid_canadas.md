@@ -1,7 +1,7 @@
 Two Covid Canadas
 ================
 Jens von Bergmann
-Last updated at 29 July, 2021 - 17:41
+Last updated at 29 July, 2021 - 18:03
 
 This notebook shows the confirmed COVID cases for Canadian provinces.
 The code for this notebook is [available for anyone to adapt and use for
