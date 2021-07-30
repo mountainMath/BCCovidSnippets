@@ -287,6 +287,15 @@ g <- data %>%
 g
 #r<-graph_to_s3(g,"bccovid","ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+A log plot helps identify trends.
+
+```{r}
+g+  scale_y_continuous(trans="log", breaks=0.05*2^seq(1,10)) +
+  labs(y="Daily cases per 100k population (log scale)") +
+  coord_cartesian(ylim=c(0.1,NA),xlim=c(as.Date("2020-05-15"),NA))
+
+```
+
 
 ## Health Region Trends
 
@@ -299,7 +308,7 @@ data <- get_british_columbia_hr_case_data() %>%
   filter(!(HA %in% c("Out of Canada","All")),!(HR %in% c("All","Unknown"))) %>%
   filter(Date>=as.Date("2020-03-01")) %>%
   group_by(HR,HA) %>%
-  mutate(Trend=extract_stl_trend_m(Cases+1),
+  mutate(Trend=extract_stl_trend_m(Cases+1)-1,
          Seasonal=extract_stl_seasonal_m(Cases+1)) %>%
   mutate(Cleaned=Cases/Seasonal-1) %>%
   left_join(read_csv(here("data/ha_pop.csv")) %>%
@@ -520,7 +529,7 @@ g <- pd %>%
   theme_bw() +
   theme(legend.position = "bottom") +
   scale_y_continuous(labels = scales::percent) +
-  scale_color_manual(values=ha_colours) +
+  scale_color_manual(values=ha_colours[intersect(names(ha_colours),c("Fraser","Vancouver Coastal", "Vancouver Island",  "Interior", "Northern"))])+
   labs(title="Cases with missing Health Region level geocoding",
        x=NULL,y="Share of cases",
        color=NULL,caption="MountainMath, Data: BCCDC")
