@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 29 July, 2021 - 16:44
+Last updated at 29 July, 2021 - 17:40
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -44,6 +44,9 @@ more transmissible variant.
 ## Health Authority Trends
 
 <img src="bc_covid_trends_files/figure-gfm/ha-trend-1.png" width="1050" />
+A log plot helps identify trends.
+
+<img src="bc_covid_trends_files/figure-gfm/ha-trend-log-1.png" width="1050" />
 
 ## Health Region Trends
 
