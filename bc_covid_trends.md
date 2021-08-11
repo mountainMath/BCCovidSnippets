@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 10 August, 2021 - 18:03
+Last updated at 11 August, 2021 - 16:22
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -51,6 +51,10 @@ A log plot helps identify trends.
 ## Health Region Trends
 
 <img src="bc_covid_trends_files/figure-gfm/hr-trend-1.png" width="1050" />
+
+## Recent trends
+
+<img src="bc_covid_trends_files/figure-gfm/hr-trend-log-1.png" width="1050" />
 
 <img src="bc_covid_trends_files/figure-gfm/hr-trend-2-1.png" width="1050" />
 
