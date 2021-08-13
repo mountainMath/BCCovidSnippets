@@ -145,6 +145,7 @@ g <- data %>%
 g
 #r<-graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
+
 ## Log scale
 The underlying process that generates case data is, to first approximation, exponential. Plotting cases on a log scale makes it easier to spot trends.
 
@@ -374,8 +375,9 @@ data <- get_british_columbia_hr_case_data() %>%
 label_y <- max(data$Cases) * 0.9 
 
 g <- data %>% 
-  filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-06-01")) %>%
+  filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-05-15")) %>%
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
+  filter(count>0) %>%
   ggplot(aes(x = Date, y = count)) + 
   #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
   #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
@@ -389,13 +391,15 @@ g <- data %>%
                            nudge_x = 7,direction="y",size=3,hjust=0,
                            segment.color="black",segment.size = 0.25) +
   labs(title=paste0("Covid-19 daily new cases trend lines in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
+       subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
   theme(plot.subtitle = element_markdown()) +
+  restriction_markers(0.5,0.25) +
   expand_limits(x=max(data$Date)+40)
 
 g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
   labs(y="Daily cases per 100k population (log scale)") +
-  coord_cartesian(ylim=c(0.1,NA))
+  coord_cartesian(ylim=c(0.1,NA),xlim=c(as.Date("2021-05-15"),NA))
 
 ```
 
