@@ -336,7 +336,7 @@ g <- data %>%
   full_labels(label_y,
               major_restriction_labels=c("2020-03-18"="Phase 1"),
               major_restrictions_y=label_y) +
-  scale_color_manual(values=ha_colours) +
+  scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
   ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=5),
                            aes(label=HR,color=HA),show.legend=FALSE,
                            nudge_x = 7,direction="y",size=3,hjust=0,
@@ -351,57 +351,7 @@ g
 #r<-graph_to_s3(g,"bccovid","hr-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
 
-## Recent trends
-```{r hr-trend-log}
-pop_data <- read_csv(here("data/hr_pop.csv")) %>%
-  select(HR_UID=Region,HR=`Health Service Delivery Area`,Population=Total)
 
-data <- get_british_columbia_hr_case_data() %>%
-  rename(HA=`Health Authority`,HR=`Health Region`) %>%
-  filter(!(HA %in% c("Out of Canada","All")),!(HR %in% c("All","Unknown"))) %>%
-  filter(Date>=as.Date("2020-03-01")) %>%
-  group_by(HR,HA) %>%
-  mutate(Trend=extract_stl_trend_m(Cases+1)-1,
-         Seasonal=extract_stl_seasonal_m(Cases+1)) %>%
-  mutate(Cleaned=Cases/Seasonal-1) %>%
-  left_join(read_csv(here("data/ha_pop.csv")) %>%
-              select(HA=`Health Authority`,HA_Population=Total), by="HA") %>%
-  left_join(pop_data, by="HR") %>%
-  mutate(Population=coalesce(Population,HA_Population)) %>%
-  ungroup() %>%
-  mutate(Cases_0=Cases,Trend_0=Trend,Cleand_0=Cleaned) %>%
-  mutate_at(c("Cases","Cleaned","Trend"),function(d)d/.$Population*100000)
-
-label_y <- max(data$Cases) * 0.9 
-
-g <- data %>% 
-  filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-05-15")) %>%
-  pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
-  filter(count>0) %>%
-  ggplot(aes(x = Date, y = count)) + 
-  #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
-  #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
-  geom_line(data=~filter(.,type=="Trend"),aes(color=HA,group=HR),size=0.75) +
-  theme_bw() +
-  scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
-  theme(legend.position = "bottom") +
-  scale_color_manual(values=ha_colours) +
-  ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=5),
-                           aes(label=HR,color=HA),show.legend=FALSE,
-                           nudge_x = 7,direction="y",size=3,hjust=0,
-                           segment.color="black",segment.size = 0.25) +
-  labs(title=paste0("Covid-19 daily new cases trend lines in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
-       subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
-       x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
-  theme(plot.subtitle = element_markdown()) +
-  restriction_markers(0.5,0.25) +
-  expand_limits(x=max(data$Date)+40)
-
-g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
-  labs(y="Daily cases per 100k population (log scale)") +
-  coord_cartesian(ylim=c(0.1,NA),xlim=c(as.Date("2021-05-15"),NA))
-
-```
 
 
 ```{r hr-trend-2}
@@ -464,6 +414,58 @@ g <- data %>%
 
 g
 #r<-graph_to_s3(g,"bccovid","hr-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
+```
+
+## Recent trends
+```{r hr-trend-log}
+pop_data <- read_csv(here("data/hr_pop.csv")) %>%
+  select(HR_UID=Region,HR=`Health Service Delivery Area`,Population=Total)
+
+data <- get_british_columbia_hr_case_data() %>%
+  rename(HA=`Health Authority`,HR=`Health Region`) %>%
+  filter(!(HA %in% c("Out of Canada","All")),!(HR %in% c("All","Unknown"))) %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
+  group_by(HR,HA) %>%
+  mutate(Trend=extract_stl_trend_m(Cases+1)-1,
+         Seasonal=extract_stl_seasonal_m(Cases+1)) %>%
+  mutate(Cleaned=Cases/Seasonal-1) %>%
+  left_join(read_csv(here("data/ha_pop.csv")) %>%
+              select(HA=`Health Authority`,HA_Population=Total), by="HA") %>%
+  left_join(pop_data, by="HR") %>%
+  mutate(Population=coalesce(Population,HA_Population)) %>%
+  ungroup() %>%
+  mutate(Cases_0=Cases,Trend_0=Trend,Cleand_0=Cleaned) %>%
+  mutate_at(c("Cases","Cleaned","Trend"),function(d)d/.$Population*100000)
+
+label_y <- max(data$Cases) * 0.9 
+
+g <- data %>% 
+  filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-05-15")) %>%
+  pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
+  filter(count>0) %>%
+  ggplot(aes(x = Date, y = count)) + 
+  #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
+  #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
+  geom_line(data=~filter(.,type=="Trend"),aes(color=HA,group=HR),size=0.75) +
+  theme_bw() +
+  scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
+  theme(legend.position = "bottom") +
+  scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
+  ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=5),
+                           aes(label=HR,color=HA),show.legend=FALSE,
+                           nudge_x = 7,direction="y",size=3,hjust=0,
+                           segment.color="black",segment.size = 0.25) +
+  labs(title=paste0("Covid-19 daily new cases trend lines in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
+       subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
+       x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
+  theme(plot.subtitle = element_markdown()) +
+  restriction_markers(0.5,0.25) +
+  expand_limits(x=max(data$Date)+40)
+
+g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
+  labs(y="Daily cases per 100k population (log scale)") +
+  coord_cartesian(ylim=c(0.1,NA),xlim=c(as.Date("2021-05-15"),NA))
+
 ```
 
 ### Age groups
