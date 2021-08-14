@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 13 August, 2021 - 16:45
+Last updated at 13 August, 2021 - 17:03
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -13,8 +13,11 @@ repo](https://github.com/mountainMath/BCCovidSnippets/blob/main/bc_covid_trends.
 ## Overall BC Trend
 
 <img src="bc_covid_trends_files/figure-gfm/bc-trend-1.png" width="1050" />
-\#\# Log scale The underlying process that generates case data is, to
-first approximation, exponential. Plotting cases on a log scale makes it
+
+## Log scale
+
+The underlying process that generates case data is, to first
+approximation, exponential. Plotting cases on a log scale makes it
 easier to spot trends.
 
 Real development in case data differs from pure exponential growth in
