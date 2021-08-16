@@ -451,7 +451,7 @@ g <- data %>%
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   theme(legend.position = "bottom") +
   scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
-  ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=5),
+  ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=2),
                            aes(label=HR,color=HA),show.legend=FALSE,
                            nudge_x = 7,direction="y",size=3,hjust=0,
                            segment.color="black",segment.size = 0.25) +
