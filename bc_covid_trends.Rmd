@@ -28,9 +28,11 @@ library(CanCovidData)
 
 source(here("R/helpers.R"))
 
-major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-29"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
-major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-07"="No indoor dining\nNo indoor group activity\nMasks grades 4-12")
-major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3,"2020-03-29"=0.1)
+major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-29"="No indoor dining\nNo indoor group activity\nMasks grades 4-12",
+                        "2021-08-25"="Indoor Masks")
+major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-07"="No indoor dining\nNo indoor group activity\nMasks grades 4-12",
+                              "2021-08-25"="Indoor Masks")
+major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3,"2020-03-29"=0.1,"2021-08-25"=1)
 minor_restrictions <- c("2020-03-11","2020-03-12","2020-03-16","2020-03-17",
                         "2020-03-21","2020-03-22","2020-03-26","2020-04-18",
                         "2020-06-18","2020-08-21","2020-09-08","2020-10-26","2021-04-30",
@@ -141,7 +143,8 @@ g <- data %>%
                     strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Number of daily cases",color=NULL,caption="MountainMath, Data: BCCDC") +
-  theme(plot.subtitle = element_markdown())
+  theme(plot.subtitle = element_markdown()) +
+  expand_limits(x=as.Date("2021-09-08"))
 g
 #r<-graph_to_s3(g,"bccovid","bc-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
 ```
@@ -186,7 +189,8 @@ g <- data %>%
     scale_y_continuous(trans="log",
                        breaks=c(2,4,8,16,32,64,128,256,512,1024)) +
   coord_cartesian(ylim=c(4,1400),xlim=c(as.Date("2020-05-15"),NA)) +
-  labs(y="Number of daily cases (log scale)")
+  labs(y="Number of daily cases (log scale)") +
+  expand_limits(x=as.Date("2021-09-08"))
 g
 ```
 
@@ -233,7 +237,8 @@ g <- data %>%
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
-  theme(plot.subtitle = element_markdown()) 
+  theme(plot.subtitle = element_markdown()) +
+  expand_limits(x=as.Date("2021-09-08"))
 
 g
 #r<-graph_to_s3(g,"bccovid","main-ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
@@ -284,7 +289,8 @@ g <- data %>%
   labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
-  theme(plot.subtitle = element_markdown())
+  theme(plot.subtitle = element_markdown()) +
+  expand_limits(x=as.Date("2021-09-08"))
 
 g
 #r<-graph_to_s3(g,"bccovid","ha-trend.png",width=knitr::opts_chunk$get('fig.width'),height=knitr::opts_chunk$get('fig.height'))
