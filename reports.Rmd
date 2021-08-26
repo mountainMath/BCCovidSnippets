@@ -1,0 +1,304 @@
+---
+title: "Images for reports"
+author: "Jens von Bergmann"
+date: "Last updated at `r format(Sys.time(), '%d %B, %Y - %H:%M',tz='America/Vancouver')`"
+output: rmarkdown::github_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+	echo = FALSE,
+	message = FALSE,
+	warning = FALSE,
+	fig.retina = 2,
+	dpi = 150,
+	fig.width = 7,
+	fig.height = 5
+)
+library(tidyverse)
+library(CanCovidData)
+library(lubridate)
+library(ggtext)
+library(segmented)
+library(broom)
+```
+
+```{r}
+source(here::here("R/helpers.R"))
+
+major_restrictions <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-29"="No indoor dining\nNo indoor group activity\nMasks grades 4-12",
+                        "2021-08-25"="Indoor Masks")
+major_restriction_labels <- c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings","2020-11-19"="Masks in stores\nTravel discouraged","2021-03-07"="No indoor dining\nNo indoor group activity\nMasks grades 4-12",
+                              "2021-08-25"="Indoor Masks")
+major_restrictions_y <- c("2020-03-18"=1,"2020-11-07"=0.1,"2020-11-19"=0.3,"2020-03-29"=0.1,"2021-08-25"=1)
+minor_restrictions <- c("2020-03-11","2020-03-12","2020-03-16","2020-03-17",
+                        "2020-03-21","2020-03-22","2020-03-26","2020-04-18",
+                        "2020-06-18","2020-08-21","2020-09-08","2020-10-26","2021-04-30",
+                        "2021-07-28","2021-08-06")
+major_reopenings <- c("2020-05-19"="Phase 2","2020-06-24"="Phase 3",
+                      "2021-05-25"="Step 1\nreopening","2021-06-15"="Step 2\nreopening",
+                      "2021-07-01"="Step 3\nreopening")
+major_reopenings_y_fact <- c(1,1,1,0.8,0.6)
+minor_reopenings <- c("2020-05-14","2020-06-01","2020-06-08",
+                      "2020-06-30","2020-07-02","2020-09-10","2020-12-15")
+
+restriction_markers <- function(major_size=1,minor_size=0.25){
+  list(
+    geom_vline(xintercept = as.Date(minor_reopenings),
+               linetype="dashed",color="darkgreen",size=minor_size),
+    geom_vline(xintercept = as.Date(names(major_reopenings)),linetype="dashed",color="darkgreen",size=major_size),
+    geom_vline(xintercept = as.Date(names(major_restrictions)),linetype="dashed",color="brown",size=major_size),
+    geom_vline(xintercept = as.Date(minor_restrictions),
+               linetype="dashed",color="brown",size=minor_size)
+)}
+
+full_labels <- function(label_y,
+                        major_restriction_labels = c("2020-03-18"="Phase 1","2020-11-07"="No private\ngatherings"),
+                        major_restrictions_y = c(1,0.15)){
+  c(restriction_markers(),list(
+    geom_label(data = tibble(Date=as.Date(names(major_reopenings)),
+                             count=label_y*major_reopenings_y_fact,
+                             label=as.character(major_reopenings)),
+               aes(label=label),size=4,alpha=0.7,color="darkgreen"),
+    geom_label(data = tibble(Date=as.Date(names(major_restriction_labels)),
+                             label=as.character(major_restriction_labels),
+                             count=as.numeric(major_restrictions_y)),
+               aes(label=label),size=4,alpha=0.7,color="brown")
+  ))
+}
+
+add_stl_trend_m <- function(c){
+  #print(length(c))
+  cc <- c %>%
+    log() %>%
+    ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
+    stl(s.window=14,t.window=14) 
+   
+    as_tibble(cc$time.series) %>%
+      mutate_all(exp)
+}
+
+ha_colours <- setNames(c(sanzo::trios$c157,sanzo::trios$c149),
+                       c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
+
+share_to_ratio <- function(s)1/(1/s-1)
+ratio_to_share <- function(r)1/(1+1/r)
+get_n501y_data <- function(live=TRUE){
+  if (live)
+  read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/Figure1_weeklyreport_data.csv") %>%
+    rename(epiweek=Epiweek,epi_cdate=`Epiweek - Start Date`,patient_ha=Region,
+           prop_voc=`Proportion of VoC`)
+  else
+  read_csv("~/Desktop/COVID19_VoC_data.csv") %>%
+  bind_rows(tibble(patient_ha=c("British Columbia", "Fraser", "Interior", "Northern", 
+                                "Vancouver Coastal", "Island"),
+                   epiweek=18,
+                   epi_cdate=as.Date("2021-05-02"),
+                   prop_voc=c(83,82,83,45,92,82))) %>%
+                   #prop_voc=c(85,86,83,45,93,84))) %>%
+  bind_rows(tibble(patient_ha=c("British Columbia", "Fraser", "Interior", "Northern", 
+                                "Vancouver Coastal", "Island"),
+                   epiweek=19,
+                   epi_cdate=as.Date("2021-05-09"),
+                   prop_voc=c(85,82,89,63,94,77))) 
+                   #prop_voc=c(89,88,89,63,94,78))) 
+}
+
+bc_voc_data <- get_n501y_data() %>%
+  mutate(Date=as.Date(epi_cdate)+4,
+         share_voc=prop_voc/100) %>%
+  #left_join(get_b.1.617(),by=c("patient_ha","epiweek")) %>%
+  #mutate(share_voc=share_voc+coalesce(prop_b.1.617,0)/100) %>%
+  mutate(ratio_voc=share_to_ratio(share_voc)) %>%
+  mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass) 
+
+n501y <- bc_voc_data %>%
+  filter(patient_ha=="British Columbia") %>%
+  select(Date,Week=epiweek,share_voc,ratio_voc,Day) 
+
+# break_day <- n501y %>% filter(Date>=as.Date("2021-04-01")) %>% 
+#                                 head(1) %>% 
+#                                 pull(Day)
+break_day <- #as.Date(c("2021-04-01","2021-05-20")) %>% 
+  as.Date(c("2021-04-01")) %>% 
+  difftime(min(n501y$Date),units = "day") %>% 
+  as.integer
+
+model.n501y <- lm(log(ratio_voc)~Day,data=n501y%>% filter(as.integer(Week)>=7),Week<22)
+model.n501y.s <- segmented::segmented(model.n501y,psi = break_day)
+prediction.n501y <- tibble(Date=seq(as.Date("2021-02-01"),Sys.Date(),by="day")) %>%
+  mutate(Day=difftime(Date,min(n501y$Date),units = "day") %>% unclass) %>%
+  mutate(share_voc = predict(model.n501y.s,newdata = .) %>% exp %>% ratio_to_share) 
+
+```
+```{r}
+all_data <- get_british_columbia_case_data() %>%
+  count(Date=`Reported Date`,name="Cases") %>%
+  filter(Date>=as.Date("2020-03-01")) %>%
+  mutate(stl=add_stl_trend_m(Cases)) %>%
+  mutate(Trend=stl$trend,
+         Random=stl$remainder,
+         Seasonal=stl$seasonal) %>%
+  select(-stl) %>%
+  mutate(Cleaned=Cases/Seasonal) %>%
+  left_join(prediction.n501y, by="Date") %>%
+  mutate(`Wild type`=Trend*(1-share_voc)) %>% 
+  mutate(`Wild type`=coalesce(`Wild type`,Trend)) %>%
+  mutate(Combined=Trend) %>%
+  mutate(Trend=`Wild type`)
+
+
+start_date <- as.Date("2020-04-25")
+end_predict_date<- as.Date("2021-06-01")
+projection_days <- 14
+
+model_data <- all_data %>% 
+  filter(Date>=start_date) %>%
+  filter(Date<=end_predict_date) %>%
+  mutate(day=difftime(Date,first(Date),units="day") %>% as.integer) %>%
+  mutate(log_Trend=log(Trend)) 
+
+model.lm <- lm(log_Trend ~ day,data=model_data)
+  
+
+model.s <- segmented::segmented(model.lm,npsi=6)
+
+change_points <- model.s$psi %>% 
+  as_tibble() %>% 
+  mutate(Date=start_date+Est.)
+
+if (TRUE){
+  added_change_points <- as.Date(c("2020-05-09")) %>% 
+    #as.Date(c("2020-05-09")) %>% 
+    difftime(start_date) %>% 
+    as.integer
+  model.s <- segmented(model.lm,psi=c(change_points$Est.,added_change_points) %>% sort)
+  
+  change_points <- model.s$psi %>% 
+    as_tibble() %>% 
+    mutate(Date=start_date+Est.)
+}
+# initial_phase <- tidy(model.s) %>% 
+#   slice(1,2) %>%
+#   pull(estimate)
+
+
+predict_data <- list(seq(as.Date("2020-03-20"),start_date,by="day"),
+                     seq(max(all_data$Date),max(all_data$Date)+projection_days,by="day")) %>%
+  lapply(function(dates){
+    tibble(Date=dates) %>%
+      mutate(day=difftime(Date,start_date,units = "day") %>% as.integer) %>%
+      mutate(log_count=predict(model.s,newdata=.)) %>%
+      mutate(count=exp(log_count))
+  }) 
+
+growth_rates <- tidy(model.s) %>%
+  filter(term!="(Intercept)",!grepl("psi",term)) %>%
+  mutate(r=cumsum(estimate)) %>%
+  mutate(R=exp(r*6.5)) 
+
+cutoff_data <- tibble(min=c(start_date,sort(change_points$Date)) %>% as.character()) %>%
+  mutate(max=lead(min) %>% coalesce(.,end_predict_date %>% as.character()),
+         predict_max=lead(min) %>% coalesce(.,as.character(end_predict_date+projection_days))) %>%
+  mutate_all(as.Date) %>%
+  mutate(t=as.character(row_number() %% 2)) %>%
+  mutate(mid=min+as.numeric(difftime(max,min,units="day"))/2) %>%
+  bind_cols(growth_rates %>% select(r,R)) %>%
+  mutate(label=paste0("Wild type\nr=",scales::percent(r,accuracy = 0.1),"\nR=",round(R,2))) %>%
+  mutate(mid=case_when(mid==min(mid) ~ mid-12,TRUE ~ mid)) #%>%
+  #filter(min<max(change_points$Date)-1) # drop last one
+  
+```
+
+
+```{r bc-overview, fig.height=6, fig.width=8}
+label_y <- max(model_data$Cases) * 0.85
+
+g <- all_data %>%
+  left_join(model_data %>% 
+              mutate(Fitted=predict(model.s,new_data=.) %>% exp()) %>%
+              select(Date,Fitted),by="Date")%>%
+  pivot_longer(c("Cases","Wild type","Cleaned","Combined","Fitted"),names_to="type",values_to="count") %>%
+  filter(type!="Wild type" | Date>=as.Date("2021-02-01")) %>%
+  mutate(type=factor(type,levels=c("Cases","Cleaned","Wild type","Fitted","Combined"))) %>%
+  filter(Date<=end_predict_date|type!="Wild type") %>%
+  #filter(Date>=as.Date("2020-11-01")) %>%
+  ggplot(aes(x = Date, y = count,color=type,size=type)) + 
+  geom_rect(data=cutoff_data,# %>% filter(max<as.Date("2021-03-01")),
+            aes(xmin=min,xmax=max,fill=t), inherit.aes = FALSE,
+            ymin=0,ymax=Inf,show.legend = FALSE,alpha=0.5) +
+  scale_fill_manual(values=c("#dddddd","#aaaaaa")) +
+  full_labels(label_y,major_restriction_labels=major_restriction_labels,
+              major_restrictions_y=major_restrictions_y*label_y) +
+  geom_point(data=~filter(.,type=="Cases"),shape=21) +
+  geom_line(data=~filter(.,type!="Cases")) +
+  scale_size_manual(values=c("Cases"=0.5,"Cleaned"=0.25,
+                              "Wild type"=1,
+                              "Combined"=1,"Fitted"=0.75),
+                    guide=FALSE) +
+  #geom_vline(data=change_points %>% bind_rows(tibble(Date=start_date)),aes(xintercept = Date)) +
+  theme_bw() +
+  theme(legend.position = "bottom") +
+  theme(panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank()) +
+  scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
+  scale_color_manual(values=c("Cases"="grey","Cleaned"="darkgrey",
+                              "Wild type"="grey40",
+                              "Combined"="black","Fitted"="steelblue"),
+                     labels=c("Cases"="Raw cases","Cleaned"="Cases adjusted for weekly pattern",
+                              "Wild type"="Wild type",
+                              "Combined"="Wild type and VOC","Fitted"="Fitted wild type")) +
+  #geom_line(data=predict_data[[1]],color="steelblue",size=1,linetype="dotted") +
+  #geom_line(data=predict_data[[2]],color="steelblue",size=1,linetype="dotted") +
+  guides(color = guide_legend(override.aes = list(linetype = c("Cases"=NA, "Cleaned"=1,
+                                                               "Wild type"=1,"Fitted"=1, "Combined"=1),
+                                                  shape = c("Cases"=21,"Cleaned"=NA,
+                                                            "Wild type"=NA,"Fitted"=NA, "Combined"=NA)) ) ) +
+  geom_label(data=cutoff_data,# %>% filter(max<as.Date("2021-03-01")),
+             y=max(model_data$Cases*0.98),
+                            aes(label=label,x=mid),inherit.aes = FALSE,size=3,alpha=0.8) +
+  labs(title=paste0("Covid-19 daily new cases in British Columbia (up to ",strftime(max(all_data$Date),"%a %b %d"),")"),
+       subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
+       x=NULL,y="Number of daily cases",color=NULL,caption="MountainMath, Data: BCCDC") +
+  theme(plot.subtitle = element_markdown()) +
+  expand_limits(x=as.Date("2021-09-08"))
+g 
+```
+
+
+```{r bc-hospitalizations}
+d<-get_can_covid_tracker_data("bc") %>%
+  mutate(Date=as.Date(date))
+
+dd<-get_british_columbia_case_data() %>%
+  count(Date=`Reported Date`,name="Cases")
+
+d %>%
+  pivot_longer(c("total_hospitalizations","total_criticals","change_cases")) %>%
+  select(Date,name,value) %>%
+  mutate(value=as.integer(value)) %>%
+  bind_rows(dd %>% rename(value=Cases) %>% mutate(name="Cases")) %>%
+  filter(Date>=as.Date("2020-08-01")) %>%
+  mutate(value=pmax(1,value)) %>%
+  group_by(name) %>%
+  arrange(desc(Date)) %>%
+  filter(cumsum(value)>0) %>%
+  mutate(stl=add_stl_trend_m(value)) %>%
+  mutate(trend=stl$trend) %>%
+  filter(name!="change_cases") %>%
+  filter(Date>=as.Date("2020-09-01")) %>%
+  mutate(name=recode(name,"total_criticals"="ICU census","total_hospitalizations"="Hospital census")) %>%
+ggplot(aes(x=Date,y=trend,colour=name)) +
+  geom_point(aes(y=value),size=0.5,shape=21) +
+  geom_line() +
+  scale_y_continuous(trans="log",breaks=2^seq(0,10)) +
+  scale_x_date(date_labels = "%b %Y",breaks = "month") +
+  theme_bw() +
+  scale_colour_manual(values=sanzo::trios$c172) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle=60,hjust=1)) +
+  labs(title="British Columbia COVID-19 cases, hospital and ICU census",
+       x=NULL,y=NULL,colour=NULL,
+       caption="Data: BCCDC for cases, Canada Covid-19 tracker for hospital and ICU census")
+```

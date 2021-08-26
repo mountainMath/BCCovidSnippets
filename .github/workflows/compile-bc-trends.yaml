@@ -5,6 +5,7 @@ on:
       - two_covid_canadas.Rmd
       - open_table.Rmd
       - vaccination_tracker.Rmd
+      - reports.Rmd
       - .github/workflows/compile-bc-trends.yaml
   schedule:
     - cron: "35 0,23 * * *"
@@ -74,5 +75,6 @@ jobs:
           git commit bc_covid_trends.md  bc_covid_trends_files -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
           git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git commit open_table.md open_table_files -m 'Re-build open_table.Rmd' || echo "No changes to commit"
+          git commit reports.md reports_files -m 'Re-build reports.Rmd' || echo "No changes to commit"
           git commit vaccination_tracker.md vaccination_tracker_files -m 'Re-build vaccination_tracker.Rmd' || echo "No changes to commit"
           git push origin || echo "No changes to commit"
