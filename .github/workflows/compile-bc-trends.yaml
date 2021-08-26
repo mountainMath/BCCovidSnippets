@@ -67,6 +67,9 @@ jobs:
       - name: Render Vaccination Tracker
         run: |
           Rscript -e 'rmarkdown::render("vaccination_tracker.Rmd")'
+      - name: Render Reports
+        run: |
+          Rscript -e 'rmarkdown::render("reports.Rmd")'
       - name: Commit results
         run: |
           git config --local user.email "actions@github.com"

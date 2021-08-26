@@ -342,9 +342,9 @@ g <- data %>%
   theme(legend.position = "bottom") +
   scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
   ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=2),
-                           aes(label=HR,color=HA),show.legend=FALSE,
+                           aes(label=HR),show.legend=FALSE,
                            nudge_x = 7,direction="y",size=3,hjust=0,
-                           segment.color="black",segment.size = 0.25) +
+                           segment.color="black",segment.size = 0.25,colour="black") +
   labs(title=paste0("Covid-19 daily new cases trend lines in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
        subtitle="Timeline of <b style='color:#A52A2A;'>closure</b> and <b style='color:#006400;'>reopening</b> events",
        x=NULL,y="Daily cases per 100k population",color=NULL,caption="MountainMath, Data: BCCDC, BC Stats") +
