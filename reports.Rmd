@@ -408,7 +408,8 @@ weather_data<-weathercan::weather_dl(51442,interval = "day",start=min(wastewater
   select(Date,total_rain) %>%
   mutate(total_rain=coalesce(total_rain,0)) %>%
   arrange(Date)%>%
-  mutate(rain=zoo::rollmean(total_rain,3,na.pad = TRUE,align = "right")) %>%
+  mutate(rain=roll::roll_mean(total_rain,3)) %>%
+  #mutate(rain=zoo::rollmean(total_rain,3,na.pad = TRUE,align = "right")) %>%
   #mutate(rain=(total_rain+lag(total_rain,1,order_by = Date)+lag(total_rain,2,order_by = Date))/3)%>%
   mutate(s=rain/mean(rain,na.rm=TRUE)) 
   
@@ -433,7 +434,5 @@ plot_data %>%
         axis.ticks.y = element_blank()) +
   labs(title="Wastewater COVID concentration vs case counts",
        x=NULL,y=NULL,colour=NULL)
-
-#ccf(plot_data$Cases,plot_data$Value)
 ```
 
