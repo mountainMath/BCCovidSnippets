@@ -402,11 +402,16 @@ plot_data <- bind_rows(
   joint_data_for("North Shore/Coast Garibaldi","Lions Gate"),
 )
 
-
-weather_data<-weathercan::weather_dl(51442,interval = "day",start=min(wastewater_data$Date)-3) %>%
+stations <- c("Iona Island / Vancouver"=51442,
+              "Lions Gate / North Shore/Coast Garibaldi"=833,
+              "Lulu Island / Richmond"=837,
+              "Annacis / Fraser North/South"=43723)
+weather_data<-weathercan::weather_dl(stations,interval = "day",start=min(wastewater_data$Date)-3) %>%
   mutate(Date=date) %>%
-  select(Date,total_rain) %>%
+  mutate(region=setNames(names(stations),as.integer(stations))[as.character(station_id)]) %>%
+  select(Date,total_rain,region) %>%
   mutate(total_rain=coalesce(total_rain,0)) %>%
+  group_by(region) %>%
   arrange(Date)%>%
   mutate(rain=roll::roll_mean(total_rain,3)) %>%
   #mutate(rain=zoo::rollmean(total_rain,3,na.pad = TRUE,align = "right")) %>%
