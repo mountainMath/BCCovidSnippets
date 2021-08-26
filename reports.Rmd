@@ -361,4 +361,79 @@ g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
   coord_cartesian(ylim=c(0.1,NA))
 
 ```
+```{r wastewater-covid}
+plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest Langley")
+
+wastewater_data <- plants %>% 
+  lapply(get_data_for_plant) %>%
+  bind_rows()
+
+bc_cases <- CanCovidData::get_british_columbia_hr_case_data() %>%
+  filter(Date>=min(wastewater_data$Date)-7) %>%
+  select(Date, HA=`Health Authority`,HR=`Health Region`,Cases)
+
+
+joint_data_for <- function(HRs, WPs,label=NULL){
+  if (length(WPs)==1 & is.null(names(WPs))) WPs=setNames(1,WPs)
+  if (is.null(label)) label = paste0(paste0(names(WPs),collapse = " & ")," / ",
+                                     paste0(HRs,collapse = " & "))
+  wd<-wastewater_data %>%
+    filter(Plant %in% names(WPs)) %>%
+    mutate(weight=WPs[Plant]) %>%
+    group_by(Date) %>%
+    mutate(weight=weight/sum(weight)) %>%
+    #filter(!(Plant%in% c("Northwest Langley","Annacis Island") & weight==1)) %>%
+    summarise(Wastewater=sum(Value*weight),.groups="drop")
+  cs <- bc_cases %>% 
+    filter(HR %in% HRs) %>%
+    group_by(Date) %>%
+    summarize(Cases=sum(Cases),.groups="drop") %>%
+    mutate(Trend=add_stl_trend_m(Cases+1)$trend-1)
+  
+  left_join(wd,cs,by="Date") %>%
+    mutate(region=label)
+}
+
+plot_data <- bind_rows(
+  joint_data_for("Vancouver","Iona Island"),
+  joint_data_for("Richmond","Lulu Island"),
+  #joint_data_for(c("Fraser North","Fraser South"),c("Annacis Island"=0.8,"Northwest Langley"=0.2)),
+  joint_data_for(c("Fraser North","Fraser South"),"Annacis Island",label="Annacis / Fraser North/South"),
+  joint_data_for("North Shore/Coast Garibaldi","Lions Gate"),
+)
+
+
+weather_data<-weathercan::weather_dl(51442,interval = "day",start=min(wastewater_data$Date)-3) %>%
+  mutate(Date=date) %>%
+  select(Date,total_rain) %>%
+  mutate(total_rain=coalesce(total_rain,0)) %>%
+  arrange(Date)%>%
+  mutate(rain=zoo::rollmean(total_rain,3,na.pad = TRUE,align = "right")) %>%
+  #mutate(rain=(total_rain+lag(total_rain,1,order_by = Date)+lag(total_rain,2,order_by = Date))/3)%>%
+  mutate(s=rain/mean(rain,na.rm=TRUE)) 
+  
+plot_data %>%
+  group_by(region)%>%
+  arrange(Date) %>%
+  #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
+  pivot_longer(c("Cases","Wastewater")) %>%
+  group_by(name,region) %>%
+  mutate(s=value/mean(value,na.rm=TRUE)) %>%
+  filter(Date>=as.Date("2020-10-01")) %>%
+  ggplot(aes(x=Date,y=s,colour=name)) +
+  geom_line(data=weather_data %>% filter(Date>=as.Date("2020-10-01")),
+            colour="grey",size=0.5,line_type="dotted") +
+  geom_line() +
+  facet_wrap(~region) +
+  theme_bw() +
+  scale_colour_manual(values=sanzo::duos$c085) +
+  scale_y_continuous() +
+  theme(legend.position = "bottom",
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  labs(title="Wastewater COVID concentration vs case counts",
+       x=NULL,y=NULL,colour=NULL)
+
+#ccf(plot_data$Cases,plot_data$Value)
+```
 
