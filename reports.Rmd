@@ -416,28 +416,60 @@ weather_data<-weathercan::weather_dl(stations,interval = "day",start=min(wastewa
   mutate(rain=roll::roll_mean(total_rain,3)) %>%
   #mutate(rain=zoo::rollmean(total_rain,3,na.pad = TRUE,align = "right")) %>%
   #mutate(rain=(total_rain+lag(total_rain,1,order_by = Date)+lag(total_rain,2,order_by = Date))/3)%>%
-  mutate(s=rain/mean(rain,na.rm=TRUE)) 
+  mutate(s=rain/mean(rain,na.rm=TRUE),
+         value=rain) 
   
+beginning_date <- as.Date("2020-10-01")
+change_methods_date <- as.Date("2021-01-01")
+
 plot_data %>%
   group_by(region)%>%
   arrange(Date) %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
   pivot_longer(c("Cases","Wastewater")) %>%
   group_by(name,region) %>%
+  bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
+  mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall"))) %>%
+  filter(Date>=beginning_data) %>%
   mutate(s=value/mean(value,na.rm=TRUE)) %>%
-  filter(Date>=as.Date("2020-10-01")) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
-  geom_line(data=weather_data %>% filter(Date>=as.Date("2020-10-01")),
-            colour="grey",size=0.5,line_type="dotted") +
+  geom_vline(xintercept = change_methods_date,linetype="dotted") +
+  geom_rect(data=as_tibble(1),xmin=-Inf,xmax=change_methods_date,ymin=-Inf,ymax=Inf,
+            fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
   geom_line() +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=sanzo::duos$c085) +
+  scale_colour_manual(values=c(sanzo::duos$c085,"darkgrey")) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
   labs(title="Wastewater COVID concentration vs case counts",
        x=NULL,y=NULL,colour=NULL)
+```
+
+```{r wastewater-covid-2}
+plot_data %>%
+  group_by(region)%>%
+  arrange(Date) %>%
+  #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
+  pivot_longer(c("Cases","Wastewater")) %>%
+  group_by(name,region) %>%
+  bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
+  mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall"))) %>%
+  filter(Date>=change_methods_date) %>%
+  mutate(s=value/mean(value,na.rm=TRUE)) %>%
+  ggplot(aes(x=Date,y=s,colour=name)) +
+  geom_line() +
+  facet_wrap(~region) +
+  theme_bw() +
+  scale_colour_manual(values=c(sanzo::duos$c085,"darkgrey")) +
+  scale_y_continuous() +
+  theme(legend.position = "bottom",
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  labs(title="Wastewater COVID concentration vs case counts",
+       x=NULL,y=NULL,colour=NULL) +
+  coord_cartesian(ylim = c(0,7))
 ```
 
