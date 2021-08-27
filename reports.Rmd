@@ -430,7 +430,7 @@ plot_data %>%
   group_by(name,region) %>%
   bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
   mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall"))) %>%
-  filter(Date>=beginning_data) %>%
+  filter(Date>=beginning_date) %>%
   mutate(s=value/mean(value,na.rm=TRUE)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
