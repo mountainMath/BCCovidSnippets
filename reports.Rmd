@@ -111,6 +111,7 @@ get_n501y_data <- function(live=TRUE){
 ```{r}
 
 bc_voc_data <- get_n501y_data() %>%
+  mutate(prop_voc=as.numeric(prop_voc)) %>%
   mutate(Date=as.Date(epi_cdate)+4,
          share_voc=prop_voc/100) %>%
   #left_join(get_b.1.617(),by=c("patient_ha","epiweek")) %>%
@@ -369,8 +370,8 @@ wastewater_data <- plants %>%
   bind_rows()
 
 bc_cases <- CanCovidData::get_british_columbia_hr_case_data() %>%
-  filter(Date>=min(wastewater_data$Date)-7) %>%
-  select(Date, HA=`Health Authority`,HR=`Health Region`,Cases)
+  select(Date, HA=`Health Authority`,HR=`Health Region`,Cases) %>%
+  filter(Date>=min(wastewater_data$Date)-7)
 
 
 joint_data_for <- function(HRs, WPs,label=NULL){
@@ -388,7 +389,7 @@ joint_data_for <- function(HRs, WPs,label=NULL){
     filter(HR %in% HRs) %>%
     group_by(Date) %>%
     summarize(Cases=sum(Cases),.groups="drop") %>%
-    mutate(Trend=add_stl_trend_m(Cases+1)$trend-1)
+    mutate(Trend=add_stl_trend_m(Cases+1)$trend-1 %>%  pmax(0))
   
   left_join(wd,cs,by="Date") %>%
     mutate(region=label)
@@ -422,9 +423,12 @@ weather_data<-weathercan::weather_dl(stations,interval = "day",start=min(wastewa
 beginning_date <- as.Date("2020-10-01")
 change_methods_date <- as.Date("2021-01-01")
 
+wastewater_colours<- setNames(c(sanzo::duos$c085,"darkgrey"),c("Cases","Wastewater","Rainfall"))
+
 plot_data %>%
   group_by(region)%>%
   arrange(Date) %>%
+  mutate(Cases=Trend) %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
   pivot_longer(c("Cases","Wastewater")) %>%
   group_by(name,region) %>%
@@ -439,7 +443,7 @@ plot_data %>%
   geom_line() +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=c(sanzo::duos$c085,"darkgrey")) +
+  scale_colour_manual(values=wastewater_colours) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
@@ -452,6 +456,7 @@ plot_data %>%
 plot_data %>%
   group_by(region)%>%
   arrange(Date) %>%
+  mutate(Cases=Trend) %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
   pivot_longer(c("Cases","Wastewater")) %>%
   group_by(name,region) %>%
@@ -463,7 +468,7 @@ plot_data %>%
   geom_line() +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=c(sanzo::duos$c085,"darkgrey")) +
+  scale_colour_manual(values=wastewater_colours) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
