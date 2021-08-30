@@ -301,7 +301,7 @@ ggplot(aes(x=Date,y=trend,colour=name)) +
   scale_y_continuous(trans="log",breaks=2^seq(0,10)) +
   scale_x_date(date_labels = "%b %Y",breaks = "month") +
   theme_bw() +
-  scale_colour_manual(values=sanzo::trios$c172) +
+  scale_colour_manual(values=c("ICU census"="#ff80ff","Hospital census"="#008080",Cases="#008000")) +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle=60,hjust=1)) +
   labs(title="British Columbia COVID-19 cases, hospital and ICU census",
