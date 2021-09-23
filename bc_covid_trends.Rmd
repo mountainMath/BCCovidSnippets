@@ -522,7 +522,8 @@ bc_cases_age_date %>%
   #scale_y_continuous(trans="log",breaks=c(0.1,0.2,0.5,1,2,5,10,20)) +
   scale_x_date(labels=function(d)strftime(d,"%b"),breaks="month") +
   #scale_color_manual(values=sanzo::trios$c157) +
-  labs(title="Case trend lines by age group",colour="Age group",
+  labs(title=paste0("Case trend lines by age group in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
+       colour="Age group",
        x=NULL,y="Daily case counts trend per 100k population",
        caption="MountainMath, Data: BCCDC, BC Stats Population estimates 2019")
 ```
@@ -553,7 +554,8 @@ bc_cases_prevalence_date %>%
   #geom_smooth(method="lm",se=FALSE) +
   scale_color_manual(values=age_colours) +
   scale_x_date(labels=function(d)strftime(d,"%b"),breaks="month") +
-  labs(title="Relative incidence by age group",colour="Age group",
+  labs(title=paste0("Relative incidence by age group in British Columbia (up to ",strftime(max(data$Date),"%a %b %d"),")"),
+       colour="Age group",
        x=NULL,y="Relative incidence\n(share of cases by share of population)",
        caption="MountainMath, Data: BCCDC, BC Stats Population estimates 2019")
 ```
