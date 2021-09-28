@@ -514,3 +514,50 @@ plot_data %>%
   coord_cartesian(ylim = c(0,7))
 ```
 
+
+## Cases in young children
+```{r under-10}
+data <- get_british_columbia_case_data() %>%
+  count(Date=`Reported Date`,HA=`Health Authority`,Age=`Age group`,name="Cases") %>%
+  complete(Date,HA,Age,fill=list(Cases=0))
+
+ha_pop_age <- read_csv(here::here("data/ha_pop_age.csv")) %>%
+  pivot_longer(matches("\\d+"),names_to="Age",values_to="Count") %>%
+  mutate(Age=ifelse(Age=="LT1",0,Age)) %>%
+  mutate(top=strsplit(Age,"-") %>% lapply(last) %>% unlist %>% as.integer()) %>%
+  mutate(t=floor(top/10)*10+9) %>%
+  mutate(`Age group`=paste0(t-9,"-",t)) %>%
+  mutate(`Age group`=recode(`Age group`,"0-9"="<10","NA-NA"="90+")) %>%
+  group_by(HA=`Health Authority`,Age=`Age group`) %>%
+  summarize(Total=first(Total),Count=sum(Count),.groups="drop") %>%
+  mutate(Share=Count/Total)
+data %>%
+  filter(HA!="Out of Canada",Age!="Unknown") %>%
+  filter(Date>=as.Date("2020-07-01")) %>%
+  left_join(ha_pop_age,by=c("HA","Age")) %>%
+  mutate(AG=case_when(Age=="<10" ~ "Under 10", TRUE ~ "10 and over")) %>%
+  mutate(AG=factor(AG,levels=c("Under 10","10 and over"))) %>%
+  group_by(Date,HA,AG) %>%
+  summarise(Population=sum(Count),Cases=sum(Cases),Total=first(Total),.groups="drop") %>%
+  group_by(HA,AG) %>%
+  arrange(Date) %>%
+  mutate(Trend=pmax(0,add_stl_trend_m(Cases+5)$trend-5)) %>%
+  filter(Date>=as.Date("2020-12-01")) %>%
+  #filter(Date>=as.Date("2021-08-01")) %>%
+  ggplot(aes(x=Date,y=Trend/Population*100000,colour=AG)) +
+  geom_point(shape=21,aes(y=Cases/Population*100000),alpha=0.5,size=0.5) +
+  geom_line() +
+  theme_bw() +
+  scale_x_date(breaks="month",date_labels = "%b") +
+  scale_y_continuous() +
+  scale_color_manual(values=sanzo::duos$c070) +
+  theme(legend.position = "bottom",
+        axis.text.x = element_text(angle=40,hjust=1)) +
+  #scale_y_continuous(labels=scales::comma) +
+  labs(title=paste0("BC COVID-19 cases",
+                    " (up to ",strftime(max(data$Date),format="%b %d, %Y"),")"),
+       x=NULL,y="Daily COVID-19 incidence per 100k population",
+       colour=NULL,
+       caption="MountainMath, Data: BCCDC") +
+  facet_wrap(~HA,scales="free_y") 
+```
