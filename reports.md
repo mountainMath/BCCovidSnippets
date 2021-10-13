@@ -1,7 +1,7 @@
 Images for reports
 ================
 Jens von Bergmann
-Last updated at 27 September, 2021 - 16:47
+Last updated at 12 October, 2021 - 16:50
 
 <img src="reports_files/figure-gfm/bc-overview-1.png" width="1200" />
 
@@ -13,3 +13,7 @@ Last updated at 27 September, 2021 - 16:47
 <img src="reports_files/figure-gfm/wastewater-covid-1.png" width="1050" />
 
 <img src="reports_files/figure-gfm/wastewater-covid-2-1.png" width="1050" />
+
+## Cases in young children
+
+<img src="reports_files/figure-gfm/under-10-1.png" width="1050" />
