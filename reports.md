@@ -1,7 +1,7 @@
 Images for reports
 ================
 Jens von Bergmann
-Last updated at 25 October, 2021 - 18:05
+Last updated at 26 October, 2021 - 16:54
 
 <img src="reports_files/figure-gfm/bc-overview-1.png" width="1200" />
 
@@ -10,6 +10,7 @@ Last updated at 25 October, 2021 - 18:05
 <img src="reports_files/figure-gfm/icu-share-1.png" width="1050" />
 
 <img src="reports_files/figure-gfm/hr-trend-recent-1.png" width="1050" />
+
 <img src="reports_files/figure-gfm/wastewater-covid-1.png" width="1050" />
 
 <img src="reports_files/figure-gfm/wastewater-covid-2-1.png" width="1050" />
