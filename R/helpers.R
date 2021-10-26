@@ -37,6 +37,88 @@ extract_stl_seasonal_m <- function(c,s.window=21,t.window=14){
   as_tibble(cc$time.series)$seasonal%>% exp()
 }
 
+
+add_stl_trend_m <- function(c,s.window=21,t.window=14){
+  #print(length(c))
+  cc <- c %>%
+    log() %>%
+    ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
+    stl(s.window=s.window,t.window=t.window) 
+  
+  as_tibble(cc$time.series) %>%
+    mutate_all(exp)
+}
+
+get_stl_trend_uncertainty <- function(c,s.window=21,t.window=14,level=0.8,gr_add=c(0,0)){
+  #print(length(c))
+  lc <- log(c)
+  cc0 <- lc %>%
+    ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
+    stl(s.window=s.window,t.window=t.window) 
+  
+  sc <- as_tibble(cc0$time.series)$seasonal
+  sa <- exp(lc-sc)
+  pre_trend <- exp(as_tibble(cc0$time.series)$trend)
+  
+  fit21<-glm(c~d,data=tibble(c=tail(sa,21),d=seq(0,20)),family=quasipoisson(link = "log"))
+  fit14<-glm(c~d,data=tibble(c=tail(sa,14),d=seq(0,13)),family=quasipoisson(link = "log"))
+  fit7<-glm(c~d,data=tibble(c=tail(sa,7),d=seq(0,6)),family=quasipoisson(link = "log"))
+  
+  gr21 <- suppressMessages(fit14 %>% confint(level=level))
+  gr14 <- suppressMessages(fit14 %>% confint(level=level))
+  gr7 <- suppressMessages(fit7 %>% confint(level=level))
+  
+  
+  
+  anchor <- tibble(start=c(#log(pre_trend[length(pre_trend)-5])+5*gr21[2,],
+    log(pre_trend[length(pre_trend)-3])+3*(gr14[2,]+gr_add),
+    log(pre_trend[length(pre_trend)-3])+3*(gr7[2,]+gr_add)) %>% exp(),
+    fit=c("fit14-","fit14+","fit7-","fit7+"),
+    dd=length(c) %>% as.character,
+    slope=c(#gr21[2,],
+      gr14[2,],gr7[2,])) %>%
+    complete(dd=seq(length(c),length(c)+7) %>% as.character,nesting(fit,start,slope)) %>%
+    mutate(d=as.integer(dd)) %>%
+    group_by(fit) %>%
+    arrange(d) %>%
+    mutate(s=sc[seq(length(sc)-7,length(sc))]) %>%
+    ungroup %>%
+    mutate(Cases=exp((log(start)+(d-length(c))*slope)+s)) %>%
+    filter(d>length(c)) %>%
+    bind_rows(tibble(Cases=c,fit="fit14-") %>% 
+                mutate(d=row_number()) %>% 
+                complete(fit=c("fit14-","fit14+","fit7-","fit7+"),nesting(Cases,d))) %>%
+    arrange(fit,d) %>%
+    select(d,Cases,fit)
+  
+  anchor <- anchor %>% 
+    group_by(.data$fit) %>% 
+    arrange(.data$d) %>%
+    mutate(stl=add_stl_trend_m(Cases)) %>%
+    mutate(trend=stl$trend)
+  
+  dd<-anchor %>% 
+    arrange(d) %>%
+    filter(d<=length(c)) %>%
+    group_by(fit) %>%
+    group_map(~ .x$stl %>% mutate(fit=.y$fit,d=.x$d)) %>%
+    bind_rows()
+  
+  ddd<-dd %>% 
+    left_join(tibble(Cases=c,pre_trend=pre_trend) %>% mutate(d=row_number()),by="d") %>%
+    group_by(d) %>%
+    mutate(diff=max(abs(pre_trend-trend))) %>%
+    ungroup() %>%
+    filter(d>=min(filter(.,diff>0.25)$d)-1) %>%
+    group_by(d) %>%
+    summarise(max=max(trend),min=min(trend),Cases=mean(Cases),pre_trend=mean(pre_trend),diff=mean(diff)) %>%
+    ungroup %>%
+    mutate(dm=d-max(d)) %>%
+    mutate(min=pmin(min,pre_trend),
+           max=pmax(max,pre_trend)) %>%
+    select(d=dm,min,max)
+}
+
 compute_rolling_exp_fit <- function(r,window_width=7,min_obs=window_width-1,se=3){
   reg<-roll::roll_lm(seq(1,length(r)),log(r),width=window_width,min_obs=min_obs)
   reg$coefficients %>%

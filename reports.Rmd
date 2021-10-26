@@ -69,16 +69,6 @@ full_labels <- function(label_y,
   ))
 }
 
-add_stl_trend_m <- function(c){
-  #print(length(c))
-  cc <- c %>%
-    log() %>%
-    ts(frequency = 7,start = as.numeric(format(Sys.Date(), "%j"))) %>% 
-    stl(s.window=14,t.window=14) 
-   
-    as_tibble(cc$time.series) %>%
-      mutate_all(exp)
-}
 
 ha_colours <- setNames(c(sanzo::trios$c157,sanzo::trios$c149),
                        c("Fraser","Rest of BC","Vancouver Coastal" , "Vancouver Island", "Interior", "Northern"))
@@ -154,6 +144,8 @@ all_data <- get_british_columbia_case_data() %>%
   mutate(Combined=Trend) %>%
   mutate(Trend=`Wild type`)
 
+stl_tail <- get_stl_trend_uncertainty(all_data %>% arrange(Date) %>% pull(Cases),level=0.5,gr_add=c(-0.01,0.01)) %>%
+  mutate(Date=max(all_data$Date)+d)
 
 start_date <- as.Date("2020-04-25")
 end_predict_date<- as.Date("2021-06-01")
@@ -235,6 +227,7 @@ g <- all_data %>%
             aes(xmin=min,xmax=max,fill=t), inherit.aes = FALSE,
             ymin=0,ymax=Inf,show.legend = FALSE,alpha=0.5) +
   scale_fill_manual(values=c("#dddddd","#aaaaaa")) +
+  geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max),fill="black",colour="black",size=1,inherit.aes=FALSE) +
   full_labels(label_y,major_restriction_labels=major_restriction_labels,
               major_restrictions_y=major_restrictions_y*label_y) +
   geom_point(data=~filter(.,type=="Cases"),shape=21) +
@@ -342,7 +335,7 @@ ggplot(aes(x=Date,y=value,colour=name)) +
         axis.text.x = element_text(angle=60,hjust=1)) +
   labs(title="British Columbia share of COVID-19 hospitalizations in ICU",
        x=NULL,y=NULL,colour=NULL,
-       caption="Data: BCCDC for cases, Canada Covid-19 tracker for hospital and ICU census")
+       caption="Data: Canada Covid-19 tracker")
 ```
 
 
@@ -367,6 +360,17 @@ data <- get_british_columbia_hr_case_data() %>%
   mutate(Cases_0=Cases,Trend_0=Trend,Cleand_0=Cleaned) %>%
   mutate_at(c("Cases","Cleaned","Trend"),function(d)d/.$Population*100000)
 
+stl_tail <- data %>%
+  group_by(HA,HR) %>%
+  arrange(Date) %>%
+  group_map(~get_stl_trend_uncertainty(.x$Cases+1,level=0.5,gr_add=c(-0.01,0.01)) %>%
+              mutate(HA=.y$HA,HR=.y$HR)) %>%
+  bind_rows() %>%
+  mutate_at(c("min","max"),function(d)pmax(0,d-1)) %>%
+  mutate(Date=max(all_data$Date)+d) %>%
+  filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-07-01")) 
+
+
 label_y <- max(data$Cases) * 0.9 
 
 g <- data %>% 
@@ -376,11 +380,14 @@ g <- data %>%
   ggplot(aes(x = Date, y = count)) + 
   #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
   #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
+  geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max,fill=HA,color=HA,group=HR),size=0.75,
+              inherit.aes=FALSE,,show.legend = 'none') +
   geom_line(data=~filter(.,type=="Trend"),aes(color=HA,group=HR),size=0.75) +
   theme_bw() +
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   theme(legend.position = "bottom") +
   scale_color_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
+  scale_fill_manual(values=ha_colours[intersect(names(ha_colours),unique(data$HA))]) +
   ggrepel::geom_text_repel(data = ~filter(.,Date==max(Date),type=="Trend",count>=2),
                            aes(label=HR),show.legend=FALSE,
                            nudge_x = 7,direction="y",size=3,hjust=0,
@@ -398,6 +405,7 @@ g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
   coord_cartesian(ylim=c(0.1,NA))
 
 ```
+
 ```{r wastewater-covid}
 plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest Langley")
 
@@ -531,7 +539,8 @@ ha_pop_age <- read_csv(here::here("data/ha_pop_age.csv")) %>%
   group_by(HA=`Health Authority`,Age=`Age group`) %>%
   summarize(Total=first(Total),Count=sum(Count),.groups="drop") %>%
   mutate(Share=Count/Total)
-data %>%
+
+dd<-data %>%
   filter(HA!="Out of Canada",Age!="Unknown") %>%
   filter(Date>=as.Date("2020-07-01")) %>%
   left_join(ha_pop_age,by=c("HA","Age")) %>%
@@ -541,16 +550,32 @@ data %>%
   summarise(Population=sum(Count),Cases=sum(Cases),Total=first(Total),.groups="drop") %>%
   group_by(HA,AG) %>%
   arrange(Date) %>%
-  mutate(Trend=pmax(0,add_stl_trend_m(Cases+5)$trend-5)) %>%
+  mutate(Trend=pmax(0,add_stl_trend_m(Cases+5)$trend-5)) 
+
+stl_tail <- dd %>%
+  group_by(HA,AG) %>%
+  arrange(Date) %>%
+  group_map(~get_stl_trend_uncertainty(.x$Cases+5,level=0.5,gr_add=c(-0.01,0.01)) %>%
+              mutate(HA=.y$HA,AG=.y$AG)) %>%
+  bind_rows() %>%
+  mutate_at(c("min","max"),function(d)pmax(0,d-5)) %>%
+  mutate(Date=max(all_data$Date)+d) %>%
   filter(Date>=as.Date("2020-12-01")) %>%
-  #filter(Date>=as.Date("2021-08-01")) %>%
+  left_join(dd  %>% filter(Date==max(Date)) %>% select(HA,AG,Population),by=c("HA","AG")) %>%
+  mutate_at(c("min","max"),function(d)d/.$Population*100000)
+
+dd %>%
+  filter(Date>=as.Date("2020-12-01")) %>%
   ggplot(aes(x=Date,y=Trend/Population*100000,colour=AG)) +
   geom_point(shape=21,aes(y=Cases/Population*100000),alpha=0.5,size=0.5) +
+  geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max,fill=AG,color=AG,group=AG),
+              inherit.aes=FALSE,show.legend = 'none') +
   geom_line() +
   theme_bw() +
   scale_x_date(breaks="month",date_labels = "%b") +
   scale_y_continuous() +
   scale_color_manual(values=sanzo::duos$c070) +
+  scale_fill_manual(values=sanzo::duos$c070,guide='none') +
   theme(legend.position = "bottom",
         axis.text.x = element_text(angle=40,hjust=1)) +
   #scale_y_continuous(labels=scales::comma) +
