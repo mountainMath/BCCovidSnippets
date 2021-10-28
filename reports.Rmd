@@ -144,8 +144,9 @@ all_data <- get_british_columbia_case_data() %>%
   mutate(Combined=Trend) %>%
   mutate(Trend=`Wild type`)
 
-stl_tail <- get_stl_trend_uncertainty(all_data %>% arrange(Date) %>% pull(Cases),level=0.5,gr_add=c(-0.01,0.01)) %>%
-  mutate(Date=max(all_data$Date)+d)
+stl_fan <- all_data %>%
+  get_stl_fan(stl_floor = 0)
+
 
 start_date <- as.Date("2020-04-25")
 end_predict_date<- as.Date("2021-06-01")
@@ -217,6 +218,8 @@ g <- all_data %>%
   left_join(model_data %>% 
               mutate(Fitted=predict(model.s,new_data=.) %>% exp()) %>%
               select(Date,Fitted),by="Date")%>%
+  #filter(Date<=min(filter(stl_fan,max-min>0.8)$Date)) %>%
+  filter(Date<=stl_fan$Date) %>%
   pivot_longer(c("Cases","Wild type","Cleaned","Combined","Fitted"),names_to="type",values_to="count") %>%
   filter(type!="Wild type" | Date>=as.Date("2021-02-01")) %>%
   mutate(type=factor(type,levels=c("Cases","Cleaned","Wild type","Fitted","Combined"))) %>%
@@ -227,7 +230,7 @@ g <- all_data %>%
             aes(xmin=min,xmax=max,fill=t), inherit.aes = FALSE,
             ymin=0,ymax=Inf,show.legend = FALSE,alpha=0.5) +
   scale_fill_manual(values=c("#dddddd","#aaaaaa")) +
-  geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max),fill="black",colour="black",size=1,inherit.aes=FALSE) +
+  #geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max),fill="black",colour="black",size=1,inherit.aes=FALSE) +
   full_labels(label_y,major_restriction_labels=major_restriction_labels,
               major_restrictions_y=major_restrictions_y*label_y) +
   geom_point(data=~filter(.,type=="Cases"),shape=21) +
@@ -236,6 +239,7 @@ g <- all_data %>%
                               "Wild type"=1,
                               "Combined"=1,"Fitted"=0.75),
                     guide="none") +
+  geom_line(data=stl_fan,aes(x=Date,y=value,colour="Combined",group=run),size=1) +
   #geom_vline(data=change_points %>% bind_rows(tibble(Date=start_date)),aes(xintercept = Date)) +
   theme_bw() +
   theme(legend.position = "bottom") +
@@ -360,15 +364,12 @@ data <- get_british_columbia_hr_case_data() %>%
   mutate(Cases_0=Cases,Trend_0=Trend,Cleand_0=Cleaned) %>%
   mutate_at(c("Cases","Cleaned","Trend"),function(d)d/.$Population*100000)
 
-stl_tail <- data %>%
+
+stl_fan <- data %>%
+  filter(!(HR %in% c("All","Unknown"))) %>%
   group_by(HA,HR) %>%
-  arrange(Date) %>%
-  group_map(~get_stl_trend_uncertainty(.x$Cases+1,level=0.5,gr_add=c(-0.01,0.01)) %>%
-              mutate(HA=.y$HA,HR=.y$HR)) %>%
-  bind_rows() %>%
-  mutate_at(c("min","max"),function(d)pmax(0,d-1)) %>%
-  mutate(Date=max(all_data$Date)+d) %>%
-  filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-07-01")) 
+  get_stl_fan()
+
 
 
 label_y <- max(data$Cases) * 0.9 
@@ -377,12 +378,15 @@ g <- data %>%
   filter(!(HR %in% c("All","Unknown")),Date>=as.Date("2021-07-01")) %>%
   pivot_longer(c("Cases","Trend","Cleaned"),names_to="type",values_to="count") %>%
   filter(count>0) %>%
+  left_join(stl_fan %>% group_by(HA,HR) %>% summarize(max_date=min(Date),.groups="drop"), by=c("HA","HR")) %>%
+  filter(Date<=max_date) %>%
   ggplot(aes(x = Date, y = count)) + 
   #geom_point(data=~filter(.,type=="Cases"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
   #geom_line(data=~filter(.,type=="Cleaned"),size=0.5,alpha=0.1,aes(color=HA,group=HR)) +
-  geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max,fill=HA,color=HA,group=HR),size=0.75,
-              inherit.aes=FALSE,,show.legend = 'none') +
+  # geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max,fill=HA,color=HA,group=HR),size=0.75,
+  #             inherit.aes=FALSE,show.legend = 'none') +
   geom_line(data=~filter(.,type=="Trend"),aes(color=HA,group=HR),size=0.75) +
+  geom_line(data=stl_fan,aes(x=Date,y=value,color=HA,group=interaction(HR,run)),size=0.75) +
   theme_bw() +
   scale_x_date(breaks="month",labels=function(d)strftime(d,"%b")) +
   theme(legend.position = "bottom") +
@@ -550,27 +554,24 @@ dd<-data %>%
   summarise(Population=sum(Count),Cases=sum(Cases),Total=first(Total),.groups="drop") %>%
   group_by(HA,AG) %>%
   arrange(Date) %>%
-  mutate(Trend=pmax(0,add_stl_trend_m(Cases+5)$trend-5)) 
+  mutate(Trend=pmax(0,add_stl_trend_m(Cases+5)$trend-5)) %>%
+  mutate(across(c(Trend,Cases),function(d)d/.data$Population*100000))
 
-stl_tail <- dd %>%
+stl_fan <- dd %>%
   group_by(HA,AG) %>%
-  arrange(Date) %>%
-  group_map(~get_stl_trend_uncertainty(.x$Cases+5,level=0.5,gr_add=c(-0.01,0.01)) %>%
-              mutate(HA=.y$HA,AG=.y$AG)) %>%
-  bind_rows() %>%
-  mutate_at(c("min","max"),function(d)pmax(0,d-5)) %>%
-  mutate(Date=max(all_data$Date)+d) %>%
-  filter(Date>=as.Date("2020-12-01")) %>%
-  left_join(dd  %>% filter(Date==max(Date)) %>% select(HA,AG,Population),by=c("HA","AG")) %>%
-  mutate_at(c("min","max"),function(d)d/.$Population*100000)
+  get_stl_fan()
+  
 
 dd %>%
   filter(Date>=as.Date("2020-12-01")) %>%
-  ggplot(aes(x=Date,y=Trend/Population*100000,colour=AG)) +
-  geom_point(shape=21,aes(y=Cases/Population*100000),alpha=0.5,size=0.5) +
-  geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max,fill=AG,color=AG,group=AG),
-              inherit.aes=FALSE,show.legend = 'none') +
+  left_join(stl_fan %>% group_by(HA,AG) %>% summarize(max_date=min(Date),.groups="drop"), by=c("HA","AG")) %>%
+  filter(Date<=max_date) %>%
+  ggplot(aes(x=Date,y=Trend,colour=AG)) +
+  geom_point(shape=21,aes(y=Cases),alpha=0.5,size=0.5) +
+  # geom_ribbon(data=stl_tail,aes(x=Date,ymin=min,ymax=max,fill=AG,color=AG,group=AG),
+  #             inherit.aes=FALSE,show.legend = FALSE,alpha=0.5) +
   geom_line() +
+  geom_line(data=stl_fan,aes(x=Date,y=value,colour=AG,group=interaction(run,AG)),size=0.25) +
   theme_bw() +
   scale_x_date(breaks="month",date_labels = "%b") +
   scale_y_continuous() +
