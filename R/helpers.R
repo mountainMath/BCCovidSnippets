@@ -119,15 +119,15 @@ get_stl_trend_uncertainty <- function(c,s.window=21,t.window=14,level=0.8,gr_add
     select(d=dm,min,max)
 }
 
-get_stl_fan <- function(d,stl_floor=5,level=0.5,gr_add=c(-0.01,0.01)) {
-  gs <- groups(d) %>% as.character() %>% syms
-  d %>% 
+get_stl_fan <- function(data,stl_floor=5,level=0.5,gr_add=c(-0.01,0.01)) {
+  gs <- groups(data) %>% as.character() %>% syms
+  data %>% 
     arrange(Date) %>%
     group_map(~get_stl_trend_uncertainty(.x$Cases+stl_floor,level=level,gr_add=gr_add) %>%
                 mutate(HA=.y$HA,AG=.y$AG,HR=.y$HR)) %>%
     bind_rows() %>%
     mutate_at(c("min","max"),function(d)pmax(0,d-stl_floor)) %>%
-    mutate(Date=max(all_data$Date)+d) %>%
+    mutate(Date=max(data$Date)+d) %>%
     mutate(run=0) %>%
     complete(run=seq(0,5),nesting(!!!gs,Date,min,max)) %>%
     mutate(p=run/5) %>%
