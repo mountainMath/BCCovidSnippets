@@ -159,7 +159,7 @@ plot_data %>%
 ggplot(aes(x=week,y=share,fill=`Health Authority`)) +
   geom_bar(stat="identity") +
   scale_y_continuous(labels=scales::percent) +
-  scale_fill_manual(values=ha_colours,guide=FALSE) +
+  scale_fill_manual(values=ha_colours,guide='none') +
   facet_wrap("`Health Authority`",ncol=2) +
   labs(title="School exposures involving variants of concern",
        x="Initial exposure letter in week ending",
@@ -199,8 +199,8 @@ g <- ggplot(m) +
                  aes(x=longitude,y=latitude, fill = ..level.., alpha = ..level..),
                  h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
                  bins = 16, geom = "polygon", breaks=c(1,2.5,5,7.5,10,15,20,25,30,40,50,60)) +
-  scale_fill_viridis_c(guide=FALSE,option="magma") +
-  scale_alpha_continuous(guide=FALSE) +
+  scale_fill_viridis_c(guide='none',option="magma") +
+  scale_alpha_continuous(guide='none') +
   geom_roads() +
   geom_water(color="grey",size=0.1) +
   geom_sf(data=school_data,size=0.1,alpha=0.4) +
@@ -244,8 +244,8 @@ g <- ggplot(m) +
                  h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
                  geom = "polygon", breaks=bb
                  ) +
-  scale_fill_viridis_c(guide=FALSE,option="magma",limits=c(0,30000)) +
-  scale_alpha_continuous(guide=FALSE,limits=c(0,30000)) +
+  scale_fill_viridis_c(guide='none',option="magma",limits=c(0,30000)) +
+  scale_alpha_continuous(guide='none',limits=c(0,30000)) +
   geom_roads() +
   geom_water(color="grey",size=0.1) +
   geom_sf(data=school_data,size=0.1,alpha=0.4) +
@@ -281,8 +281,8 @@ g <- ggplot(m) +
                  aes(x=X,y=Y, fill = ..level.., alpha = ..level..),
                  h=c(0.05,0.05*cos(pi/180*49)),#n=1000,
                  bins = 16, geom = "polygon") + #, breaks=c(1,2.5,5,7.5,10,12.5,15,17.5,20,25,30,35)) +
-  scale_fill_viridis_c(guide=FALSE,option="viridis") +
-  scale_alpha_continuous(guide=FALSE) +
+  scale_fill_viridis_c(guide='none',option="viridis") +
+  scale_alpha_continuous(guide='none') +
   geom_roads() +
   geom_water(color="grey",size=0.1) +
   #geom_sf(data=school_data,size=0.1,alpha=0.4) +
