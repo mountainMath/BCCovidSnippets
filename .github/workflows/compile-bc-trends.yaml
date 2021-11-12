@@ -63,9 +63,6 @@ jobs:
       - name: Render Two COVID Canadas
         run: |
           Rscript -e 'rmarkdown::render("two_covid_canadas.Rmd")'
-      - name: Render OpenTable
-        run: |
-          Rscript -e 'rmarkdown::render("open_table.Rmd")'
       - name: Render Vaccination Tracker
         run: |
           Rscript -e 'rmarkdown::render("vaccination_tracker.Rmd")'
