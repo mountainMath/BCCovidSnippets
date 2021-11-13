@@ -410,7 +410,7 @@ g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
 
 ```
 
-```{r wastewater-covid}
+```{r wastewater-covid, eval=FALSE, include=FALSE}
 plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest Langley")
 
 wastewater_data <- plants %>% 
@@ -500,7 +500,7 @@ plot_data %>%
        x=NULL,y=NULL,colour=NULL)
 ```
 
-```{r wastewater-covid-2}
+```{r wastewater-covid-2, eval=FALSE, include=FALSE}
 plot_data %>%
   group_by(region)%>%
   arrange(Date) %>%
