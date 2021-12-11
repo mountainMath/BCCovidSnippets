@@ -40,10 +40,14 @@ The question of which approach to choose might seem like a question about values
 ## Tracking vaccines
 
 ```{r}
+if (FALSE) {
 pop_data <- get_cansim("17-10-0005") %>%
   filter(REF_DATE==2020,`Age group`=="All ages",Sex=="Both sexes") %>%
   add_provincial_abbreviations() %>%
   select(Province=GEO,shortProvince=GEO.abb,Population=VALUE)
+} else {
+  pop_data <- read_csv(here::here("data/prov_pop.csv"))
+}
 
 provinces <- c("BC",   "AB",   "SK",   "MB",   "ON" ,  "QC"  , "NB" ,  "PE" ,  "NS",   "NL", "CAN")
 
@@ -155,7 +159,7 @@ age5 <- c("70 to 74 years")
 age6 <- c("75 to 79 years")
 age7 <- c("80 to 84 years","85 to 89 years","90 years and over")
 
-
+if (FALSE) {
 pop <- get_cansim("17-10-0005") %>%
   normalize_cansim_values() %>%
   filter(Date==max(Date),Sex=="Both sexes") %>%
@@ -177,7 +181,10 @@ pop <- get_cansim("17-10-0005") %>%
   left_join(filter(.,age=="Total") %>% select(GeoUID,Total=Value),by="GeoUID") %>%
   filter(age!="Total") %>%
   mutate(GeoUID=ifelse(GEO=="Canada","1",GeoUID))
-  
+} else {
+  pop <- read_csv(here::here("data/prov_pop_age.csv"),col_types = cols(.default = "c")) %>%
+    mutate_at(c("Value","Total"),as.numeric)
+}
 
 geo_levels <- pop %>% select(GEO,Total) %>% unique %>% arrange(Total) %>% pull(GEO)
 
