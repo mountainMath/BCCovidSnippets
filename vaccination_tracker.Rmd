@@ -143,9 +143,11 @@ If your goal is to use vaccinations to keep deaths and morbidity roughly constan
 ## Age-specific vaccination progress
 
 ```{r}
-age_levels <- c("fill1","fill2","fill3","0-11", "12-17", "18-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
+age_levels <- c("fill1","fill2","0-4","5-11", "12-17", "18-29", "30-39", "40-49", "50-59", "60-69", "70-79", "80+")
 
 age1 <- c("0 to 4 years","5 to 9 years","10 to 14 years","15 years", "16 years", "17 years")
+age1.0 <- c("0 to 4 years")
+age1.01 <- c("5 to 9 years","10 years","11 years")
 age1.1 <- c("0 to 4 years","5 to 9 years","10 years","11 years")
 age1.2 <- c("12 years","13 years","14 years","15 years", "16 years", "17 years")
 age2 <- c("18 years", "19 years", "20 to 24 years" , "25 to 29 years",
@@ -163,7 +165,8 @@ if (FALSE) {
 pop <- get_cansim("17-10-0005") %>%
   normalize_cansim_values() %>%
   filter(Date==max(Date),Sex=="Both sexes") %>%
-  mutate(age=case_when(`Age group` %in% age1.1 ~ "0-11",
+  mutate(age=case_when(`Age group` %in% age1.0 ~ "0-4",
+                       `Age group` %in% age1.01 ~ "5-11",
                        `Age group` %in% age1.2 ~ "12-17",
                        `Age group` %in% age2.1 ~ "18-29",
                        `Age group` %in% age2.2 ~ "30-39",
@@ -188,8 +191,10 @@ pop <- get_cansim("17-10-0005") %>%
 
 geo_levels <- pop %>% select(GEO,Total) %>% unique %>% arrange(Total) %>% pull(GEO)
 
-vaccine_age <- read_csv("https://health-infobase.canada.ca/src/data/covidLive/vaccination-coverage-byAgeAndSex.csv",col_types = cols(.default="c"),na = c("", "NA","na")) %>%
-    mutate_at(vars(matches("num")),as.numeric)
+vaccine_age <- read_csv("https://health-infobase.canada.ca/src/data/covidLive/vaccination-coverage-byAgeAndSex.csv",
+                        col_types = cols(.default="c"),na = c("", "NA","na")) %>%
+    mutate_at(vars(matches("num")),as.numeric) %>%
+  mutate(age=recode(age,"05-11"="5-11"))
 
 dose_levels <- c("Fully vaccinated","Partially vaccinated","Unvaccinated")
 
