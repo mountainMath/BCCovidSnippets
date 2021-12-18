@@ -74,8 +74,9 @@ ha_colours <- setNames(c(trios$c157,trios$c149),
 
 share_to_ratio <- function(s)1/(1/s-1)
 ratio_to_share <- function(r)1/(1+1/r)
-n501y <- #read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/Figure1_weeklyreport_data.csv") %>%
-  read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
+if (FALSE) {
+n501y <- read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/Figure1_weeklyreport_data.csv") %>%
+  #read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
   # bind_rows(tibble(epi_cdate=as.Date(c("2021-05-02","2021-05-09")),
   #                  prop_voc=c(83,85),
   #                  epiweek=c(18,19),
@@ -86,6 +87,30 @@ n501y <- #read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/Figure1_w
   select(Date,Week=Epiweek,share_voc) %>%
   mutate(ratio_voc=share_to_ratio(share_voc)) %>%
   mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
+} else {
+  n501y<-read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
+  bind_rows(tibble(patient_ha=c("British Columbia", "Fraser", "Interior", "Northern", 
+                                "Vancouver Coastal", "Island"),
+                   epiweek=18,
+                   epi_cdate=as.Date("2021-05-02"),
+                   prop_voc=c(83,82,83,45,92,82))) %>%
+                   #prop_voc=c(85,86,83,45,93,84))) %>%
+  bind_rows(tibble(patient_ha=c("British Columbia", "Fraser", "Interior", "Northern", 
+                                "Vancouver Coastal", "Island"),
+                   epiweek=19,
+                   epi_cdate=as.Date("2021-05-09"),
+                   prop_voc=c(85,82,89,63,94,77))) %>%
+    mutate(prop_voc=as.numeric(prop_voc)) %>%
+  mutate(Date=as.Date(epi_cdate)+4,
+         share_voc=prop_voc/100) %>%
+  #left_join(get_b.1.617(),by=c("patient_ha","epiweek")) %>%
+  #mutate(share_voc=share_voc+coalesce(prop_b.1.617,0)/100) %>%
+  mutate(ratio_voc=share_to_ratio(share_voc)) %>%
+  filter(patient_ha=="British Columbia") %>%
+  select(Date,Week=epiweek,share_voc) %>%
+  mutate(ratio_voc=share_to_ratio(share_voc)) %>%
+  mutate(Day=difftime(Date,min(Date),units = "day") %>% unclass)
+}
 
 break_day <- n501y %>% filter(Date>=as.Date("2021-04-01")) %>% 
                                 head(1) %>% 
