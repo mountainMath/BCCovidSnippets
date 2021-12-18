@@ -81,7 +81,7 @@ get_n501y_data <- function(live=FALSE){
     rename(epiweek=Epiweek,epi_cdate=`Epiweek - Start Date`,patient_ha=Region,
            prop_voc=`Proportion of VoC`)
   else
-  read_csv("~/Desktop/COVID19_VoC_data.csv") %>%
+  read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
   bind_rows(tibble(patient_ha=c("British Columbia", "Fraser", "Interior", "Northern", 
                                 "Vancouver Coastal", "Island"),
                    epiweek=18,
