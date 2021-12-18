@@ -75,7 +75,7 @@ ha_colours <- setNames(c(sanzo::trios$c157,sanzo::trios$c149),
 
 share_to_ratio <- function(s)1/(1/s-1)
 ratio_to_share <- function(r)1/(1+1/r)
-get_n501y_data <- function(live=TRUE){
+get_n501y_data <- function(live=FALSE){
   if (live)
   read_csv("http://www.bccdc.ca/Health-Info-Site/Documents/VoC/Figure1_weeklyreport_data.csv") %>%
     rename(epiweek=Epiweek,epi_cdate=`Epiweek - Start Date`,patient_ha=Region,
