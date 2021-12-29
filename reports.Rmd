@@ -410,7 +410,7 @@ g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
 
 ```
 
-```{r wastewater-covid, eval=FALSE, include=FALSE}
+```{r wastewater-covid}
 plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest Langley")
 
 wastewater_data <- plants %>% 

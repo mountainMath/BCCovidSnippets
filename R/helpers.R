@@ -202,7 +202,17 @@ get_data_for_plant <- function(plant){
   
   headers<- c("CalculatedDate","Plant","Value")
   c[[17]][["_Child_Items_"]] %>% 
-    lapply(function(e)as_tibble(e[headers])) %>%
+    lapply(function(e){
+      #as_tibble(e[headers])
+      v<-e$Value
+      if (is.null(v)) v <- NA
+      tibble(Date=gsub("\\/Date\\(|\\)\\/","",e$Date),
+             CalculatedDate=e$CalculatedDate,
+             Plant=e$Plant,
+             Value=v)
+      }) %>%
     bind_rows() %>%
-    mutate(Date=as.Date(CalculatedDate,format="%Y/%m/%d"))
+    mutate(DateTime=as.POSIXct(as.numeric(Date)/1000, 
+                               origin="1970-01-01", tz="America/Vancouver")) %>%
+    mutate(Date=as.Date(CalculatedDate,format="%Y/%m/%d")) 
 }
