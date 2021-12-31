@@ -480,7 +480,7 @@ plot_data %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
   pivot_longer(c("Cases","Wastewater")) %>%
   group_by(name,region) %>%
-  bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
+  #bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
   mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall"))) %>%
   filter(Date>=beginning_date) %>%
   mutate(s=value/mean(value,na.rm=TRUE)) %>%
@@ -491,7 +491,7 @@ plot_data %>%
   geom_line() +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=wastewater_colours) +
+  scale_colour_manual(values=wastewater_colours[c("Cases","Wastewater")]) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
