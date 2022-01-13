@@ -415,7 +415,8 @@ plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest
 
 wastewater_data <- plants %>% 
   lapply(get_data_for_plant) %>%
-  bind_rows()
+  bind_rows() %>%
+  complete(Date=as.Date(c("2021-12-25","2020-12-25")),Plant)
 
 bc_cases <- CanCovidData::get_british_columbia_hr_case_data() %>%
   select(Date, HA=`Health Authority`,HR=`Health Region`,Cases) %>%
@@ -481,7 +482,7 @@ pd <- plot_data %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
   pivot_longer(c("Cases","Wastewater")) %>%
   #bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
-  mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall"))) %>%
+  mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall") %>% rev)) %>%
   group_by(name,region) %>%
   filter(Date>=beginning_date) %>%
   left_join((.) %>% filter(Date>=change_methods_date,Date<=change_methods_end_date) %>%
@@ -490,7 +491,7 @@ pd <- plot_data %>%
   mutate(s=value/mean_value)
 
 pd %>%
-  filter(!is.na(s)) %>%
+  #filter(!is.na(s)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
   geom_rect(data=as_tibble(1),xmin=-Inf,xmax=change_methods_date,ymin=-Inf,ymax=Inf,
@@ -500,7 +501,7 @@ pd %>%
   geom_line() +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=wastewater_colours[levels(pd$name)]) +
+  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$name)))]) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
