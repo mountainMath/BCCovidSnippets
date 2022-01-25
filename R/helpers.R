@@ -209,6 +209,7 @@ get_data_for_plant <- function(plant){
       tibble(Date=gsub("\\/Date\\(|\\)\\/","",e$Date),
              CalculatedDate=e$CalculatedDate,
              Plant=e$Plant,
+             Version=e$`_ObjectVersion_`,
              Value=v)
       }) %>%
     bind_rows() %>%

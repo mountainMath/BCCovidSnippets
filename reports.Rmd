@@ -416,7 +416,7 @@ plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest
 wastewater_data <- plants %>% 
   lapply(get_data_for_plant) %>%
   bind_rows() %>%
-  complete(Date=as.Date(c("2021-12-25","2020-12-25")),Plant)
+  complete(Date=as.Date(c("2021-12-25","2020-12-25")),Plant,Version)
 
 bc_cases <- CanCovidData::get_british_columbia_hr_case_data() %>%
   select(Date, HA=`Health Authority`,HR=`Health Region`,Cases) %>%
@@ -481,7 +481,7 @@ pd <- plot_data %>%
   mutate(Cases=Trend) %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
   pivot_longer(c("Cases","Wastewater")) %>%
-  #bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
+  bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
   mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall") %>% rev)) %>%
   group_by(name,region) %>%
   filter(Date>=beginning_date) %>%
@@ -490,7 +490,8 @@ pd <- plot_data %>%
               summarise(mean_value=mean(value,na.rm=TRUE)),by=c("name","region")) %>%
   mutate(s=value/mean_value)
 
-pd %>%
+pd %>% 
+  filter(name!="Rainfall") %>%
   #filter(!is.na(s)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
@@ -499,6 +500,7 @@ pd %>%
   geom_rect(data=as_tibble(1),xmin=change_methods_end_date,xmax=Inf,ymin=-Inf,ymax=Inf,
             fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
   geom_line() +
+  #geom_point(shape=21,data=~filter(.,name=="Wastewater")) +
   facet_wrap(~region) +
   theme_bw() +
   scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$name)))]) +
@@ -509,6 +511,30 @@ pd %>%
   labs(title="Wastewater COVID concentration vs case counts",
        x=NULL,y=NULL,colour=NULL)
 ```
+
+```{r}
+pd %>% filter(Date>=as.Date("2021-12-01")) %>%
+  #filter(!is.na(s)) %>%
+  ggplot(aes(x=Date,y=s,colour=name)) +
+  geom_vline(xintercept = change_methods_date,linetype="dotted") +
+  geom_rect(data=as_tibble(1),xmin=-Inf,xmax=change_methods_date,ymin=-Inf,ymax=Inf,
+            fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
+  geom_rect(data=as_tibble(1),xmin=change_methods_end_date,xmax=Inf,ymin=-Inf,ymax=Inf,
+            fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
+  geom_line() +
+  geom_point(shape=21,data=~filter(.,name=="Wastewater")) +
+  facet_wrap(~region) +
+  theme_bw() +
+  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$name)))]) +
+  scale_y_continuous() +
+  theme(legend.position = "bottom",
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  labs(title="Recent wastewater COVID concentration vs case counts",
+       x=NULL,y=NULL,colour=NULL)
+```
+
+
 
 ```{r wastewater-covid-2, eval=FALSE, include=FALSE}
 plot_data %>%
