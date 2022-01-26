@@ -512,7 +512,7 @@ pd %>%
        x=NULL,y=NULL,colour=NULL)
 ```
 
-```{r}
+```{r wastewater-covid-zoomed}
 pd %>% filter(Date>=as.Date("2021-12-01")) %>%
   #filter(!is.na(s)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
