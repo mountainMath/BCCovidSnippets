@@ -1,7 +1,7 @@
 Images for reports
 ================
 Jens von Bergmann
-Last updated at 25 January, 2022 - 17:04
+Last updated at 26 January, 2022 - 13:27
 
 <img src="reports_files/figure-gfm/bc-overview-1.png" width="1200" />
 
@@ -12,6 +12,8 @@ Last updated at 25 January, 2022 - 17:04
 <img src="reports_files/figure-gfm/hr-trend-recent-1.png" width="1050" />
 
 <img src="reports_files/figure-gfm/wastewater-covid-1.png" width="1050" />
+
+<img src="reports_files/figure-gfm/wastewater-covid-zoomed-1.png" width="1050" />
 
 ## Cases in young children
 
