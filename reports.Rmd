@@ -111,7 +111,7 @@ bc_voc_data <- get_n501y_data() %>%
 
 n501y <- bc_voc_data %>%
   filter(patient_ha=="British Columbia") %>%
-  select(Date,Week=epiweek,share_voc,ratio_voc,Day) 
+  dplyr:select(Date,Week=epiweek,share_voc,ratio_voc,Day) 
 
 # break_day <- n501y %>% filter(Date>=as.Date("2021-04-01")) %>% 
 #                                 head(1) %>% 
