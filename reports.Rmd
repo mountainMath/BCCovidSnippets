@@ -81,7 +81,8 @@ get_n501y_data <- function(live=FALSE){
     rename(epiweek=Epiweek,epi_cdate=`Epiweek - Start Date`,patient_ha=Region,
            prop_voc=`Proportion of VoC`)
   else
-  read_csv(here::here("data/COVID19_VoC_data.csv")) %>%
+  read_csv(here::here("data/COVID19_VoC_data.csv"),col_types = cols(.default="c")) %>%
+    mutate(across(c("epiweek",prop_voc),as.numeric),epi_cdate=as.Date(epi_cdate)) %>%
   bind_rows(tibble(patient_ha=c("British Columbia", "Fraser", "Interior", "Northern", 
                                 "Vancouver Coastal", "Island"),
                    epiweek=18,
@@ -111,7 +112,7 @@ bc_voc_data <- get_n501y_data() %>%
 
 n501y <- bc_voc_data %>%
   filter(patient_ha=="British Columbia") %>%
-  dplyr:select(Date,Week=epiweek,share_voc,ratio_voc,Day) 
+  select(Date,Week=epiweek,share_voc,ratio_voc,Day) 
 
 # break_day <- n501y %>% filter(Date>=as.Date("2021-04-01")) %>% 
 #                                 head(1) %>% 
@@ -128,6 +129,7 @@ prediction.n501y <- tibble(Date=seq(as.Date("2021-02-01"),Sys.Date(),by="day")) 
   mutate(share_voc = predict(model.n501y.s,newdata = .) %>% exp %>% ratio_to_share) 
 
 ```
+
 ```{r}
 all_data <- get_british_columbia_case_data() %>%
   count(Date=`Reported Date`,name="Cases") %>%
