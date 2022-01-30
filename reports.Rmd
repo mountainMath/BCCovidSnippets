@@ -23,7 +23,7 @@ library(readr)
 library(CanCovidData)
 library(lubridate)
 library(ggtext)
-library(segmented)
+#library(segmented)
 library(broom)
 source(here::here("R/helpers.R"))
 
@@ -174,7 +174,7 @@ if (TRUE){
     #as.Date(c("2020-05-09")) %>% 
     difftime(start_date) %>% 
     as.integer
-  model.s <- segmented(model.lm,psi=c(change_points$Est.,added_change_points) %>% sort)
+  model.s <- segmented::segmented(model.lm,psi=c(change_points$Est.,added_change_points) %>% sort)
   
   change_points <- model.s$psi %>% 
     as_tibble() %>% 
