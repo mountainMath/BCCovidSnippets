@@ -157,7 +157,7 @@ projection_days <- 14
 model_data <- all_data %>% 
   filter(Date>=start_date) %>%
   filter(Date<=end_predict_date) %>%
-  mutate(day=difftime(Date,first(Date),units="day") %>% as.integer) %>%
+  mutate(day=difftime(Date,start_date,units="day") %>% as.integer) %>%
   mutate(log_Trend=log(Trend)) 
 
 model.lm <- lm(log_Trend ~ day,data=model_data)
@@ -169,7 +169,7 @@ change_points <- model.s$psi %>%
   as_tibble() %>% 
   mutate(Date=start_date+Est.)
 
-if (TRUE){
+if (FALSE){
   added_change_points <- as.Date(c("2020-05-09")) %>% 
     #as.Date(c("2020-05-09")) %>% 
     difftime(start_date) %>% 
