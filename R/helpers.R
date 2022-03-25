@@ -183,14 +183,22 @@ graph_to_s3 <- function(graph,s3_bucket,s3_path,content_type="image/png",width=7
   
 }
 
-body_for_plant <- function(plant){
-  paste0('<Request xmlns="http://schemas.microsoft.com/sharepoint/clientquery/2009" SchemaVersion="15.0.0.0" LibraryVersion="15.0.0.0" ApplicationName="Javascript Library"><Actions><ObjectPath Id="37" ObjectPathId="36" /><ObjectPath Id="39" ObjectPathId="38" /><ObjectPath Id="41" ObjectPathId="40" /><ObjectPath Id="43" ObjectPathId="42" /><ObjectPath Id="45" ObjectPathId="44" /><Query Id="46" ObjectPathId="44"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="InternalName" SelectAll="true" /><Property Name="TypeAsString" SelectAll="true" /></Properties></ChildItemQuery></Query><ObjectPath Id="49" ObjectPathId="48" /><Query Id="50" ObjectPathId="48"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="CalculatedDate" SelectAll="true" /><Property Name="Date" SelectAll="true" /><Property Name="Note" SelectAll="true" /><Property Name="Plant" SelectAll="true" /><Property Name="Value" SelectAll="true" /></Properties></ChildItemQuery></Query></Actions><ObjectPaths><StaticProperty Id="36" TypeId="{3747adcd-a3c3-41b9-bfab-4a64dd2f1e0a}" Name="Current" /><Property Id="38" ParentId="36" Name="Web" /><Property Id="40" ParentId="38" Name="Lists" /><Method Id="42" ParentId="40" Name="GetById"><Parameters><Parameter Type="String">5a8cb96f-9e2f-49f2-b863-65de98c03b33</Parameter></Parameters></Method><Property Id="44" ParentId="42" Name="Fields" /><Method Id="48" ParentId="42" Name="GetItems"><Parameters><Parameter TypeId="{3d248d7b-fc86-40a3-aa97-02a75d69fb8a}"><Property Name="DatesInUtc" Type="Boolean">true</Property><Property Name="FolderServerRelativeUrl" Type="Null" /><Property Name="ListItemCollectionPosition" Type="Null" /><Property Name="ViewXml" Type="String">&lt;View&gt;&#10;  &lt;ViewFields&gt;&#10;    &lt;FieldRef Name="LinkTitle" /&gt;&#10;    &lt;FieldRef Name="Plant" /&gt;&#10;    &lt;FieldRef Name="Date" /&gt;&#10;    &lt;FieldRef Name="Value" /&gt;&#10;    &lt;FieldRef Name="Note" /&gt;&#10;    &lt;FieldRef Name="CalculatedDate" /&gt;&#10;  &lt;/ViewFields&gt;&#10;  &lt;RowLimit Paged="TRUE"&gt;1000&lt;/RowLimit&gt;&#10;  &lt;Query&gt;&#10;    &lt;Where&gt;&lt;Eq&gt;        &lt;FieldRef Name="Plant" /&gt;        &lt;Value Type="text"&gt;',plant,'&lt;/Value&gt;    &lt;/Eq&gt;&lt;/Where&gt;&#10;    &lt;OrderBy&gt;&#10;      &lt;FieldRef Name="Date" Ascending="TRUE" /&gt;&#10;    &lt;/OrderBy&gt;&#10;  &lt;/Query&gt;&#10;&lt;/View&gt;&#10;</Property></Parameter></Parameters></Method></ObjectPaths></Request>')
+body_for_plant <- function(plant,type){
+  if (type=="concentration") {
+    body=paste0('<Request xmlns="http://schemas.microsoft.com/sharepoint/clientquery/2009" SchemaVersion="15.0.0.0" LibraryVersion="15.0.0.0" ApplicationName="Javascript Library"><Actions><ObjectPath Id="46" ObjectPathId="45" /><ObjectPath Id="48" ObjectPathId="47" /><ObjectPath Id="50" ObjectPathId="49" /><ObjectPath Id="52" ObjectPathId="51" /><ObjectPath Id="54" ObjectPathId="53" /><Query Id="55" ObjectPathId="53"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="InternalName" SelectAll="true" /><Property Name="TypeAsString" SelectAll="true" /></Properties></ChildItemQuery></Query><ObjectPath Id="58" ObjectPathId="57" /><Query Id="59" ObjectPathId="57"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="CalculatedDate" SelectAll="true" /><Property Name="Date" SelectAll="true" /><Property Name="Note" SelectAll="true" /><Property Name="Plant" SelectAll="true" /><Property Name="Value" SelectAll="true" /></Properties></ChildItemQuery></Query></Actions><ObjectPaths><StaticProperty Id="45" TypeId="{3747adcd-a3c3-41b9-bfab-4a64dd2f1e0a}" Name="Current" /><Property Id="47" ParentId="45" Name="Web" /><Property Id="49" ParentId="47" Name="Lists" /><Method Id="51" ParentId="49" Name="GetById"><Parameters><Parameter Type="String">5a8cb96f-9e2f-49f2-b863-65de98c03b33</Parameter></Parameters></Method><Property Id="53" ParentId="51" Name="Fields" /><Method Id="57" ParentId="51" Name="GetItems"><Parameters><Parameter TypeId="{3d248d7b-fc86-40a3-aa97-02a75d69fb8a}"><Property Name="DatesInUtc" Type="Boolean">true</Property><Property Name="FolderServerRelativeUrl" Type="Null" /><Property Name="ListItemCollectionPosition" Type="Null" /><Property Name="ViewXml" Type="String">&lt;View&gt;&#10;  &lt;ViewFields&gt;&#10;    &lt;FieldRef Name="LinkTitle" /&gt;&#10;    &lt;FieldRef Name="Plant" /&gt;&#10;    &lt;FieldRef Name="Date" /&gt;&#10;    &lt;FieldRef Name="Value" /&gt;&#10;    &lt;FieldRef Name="Note" /&gt;&#10;    &lt;FieldRef Name="CalculatedDate" /&gt;&#10;  &lt;/ViewFields&gt;&#10;  &lt;RowLimit Paged="TRUE"&gt;1000&lt;/RowLimit&gt;&#10;  &lt;Query&gt;&#10;    &lt;Where&gt;&lt;Eq&gt;        &lt;FieldRef Name="Plant" /&gt;        &lt;Value Type="text"&gt;',plant,'&lt;/Value&gt;    &lt;/Eq&gt;&lt;/Where&gt;&#10;    &lt;OrderBy&gt;&#10;      &lt;FieldRef Name="Date" Ascending="TRUE" /&gt;&#10;    &lt;/OrderBy&gt;&#10;  &lt;/Query&gt;&#10;&lt;/View&gt;&#10;</Property></Parameter></Parameters></Method></ObjectPaths></Request>')
+    #body = paste0('<Request xmlns="http://schemas.microsoft.com/sharepoint/clientquery/2009" SchemaVersion="15.0.0.0" LibraryVersion="15.0.0.0" ApplicationName="Javascript Library"><Actions><ObjectPath Id="37" ObjectPathId="36" /><ObjectPath Id="39" ObjectPathId="38" /><ObjectPath Id="41" ObjectPathId="40" /><ObjectPath Id="43" ObjectPathId="42" /><ObjectPath Id="45" ObjectPathId="44" /><Query Id="46" ObjectPathId="44"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="InternalName" SelectAll="true" /><Property Name="TypeAsString" SelectAll="true" /></Properties></ChildItemQuery></Query><ObjectPath Id="49" ObjectPathId="48" /><Query Id="50" ObjectPathId="48"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="CalculatedDate" SelectAll="true" /><Property Name="Date" SelectAll="true" /><Property Name="Note" SelectAll="true" /><Property Name="Plant" SelectAll="true" /><Property Name="Value" SelectAll="true" /></Properties></ChildItemQuery></Query></Actions><ObjectPaths><StaticProperty Id="36" TypeId="{3747adcd-a3c3-41b9-bfab-4a64dd2f1e0a}" Name="Current" /><Property Id="38" ParentId="36" Name="Web" /><Property Id="40" ParentId="38" Name="Lists" /><Method Id="42" ParentId="40" Name="GetById"><Parameters><Parameter Type="String">5a8cb96f-9e2f-49f2-b863-65de98c03b33</Parameter></Parameters></Method><Property Id="44" ParentId="42" Name="Fields" /><Method Id="48" ParentId="42" Name="GetItems"><Parameters><Parameter TypeId="{3d248d7b-fc86-40a3-aa97-02a75d69fb8a}"><Property Name="DatesInUtc" Type="Boolean">true</Property><Property Name="FolderServerRelativeUrl" Type="Null" /><Property Name="ListItemCollectionPosition" Type="Null" /><Property Name="ViewXml" Type="String">&lt;View&gt;&#10;  &lt;ViewFields&gt;&#10;    &lt;FieldRef Name="LinkTitle" /&gt;&#10;    &lt;FieldRef Name="Plant" /&gt;&#10;    &lt;FieldRef Name="Date" /&gt;&#10;    &lt;FieldRef Name="Value" /&gt;&#10;    &lt;FieldRef Name="Note" /&gt;&#10;    &lt;FieldRef Name="CalculatedDate" /&gt;&#10;  &lt;/ViewFields&gt;&#10;  &lt;RowLimit Paged="TRUE"&gt;1000&lt;/RowLimit&gt;&#10;  &lt;Query&gt;&#10;    &lt;Where&gt;&lt;Eq&gt;        &lt;FieldRef Name="Plant" /&gt;        &lt;Value Type="text"&gt;',plant,'&lt;/Value&gt;    &lt;/Eq&gt;&lt;/Where&gt;&#10;    &lt;OrderBy&gt;&#10;      &lt;FieldRef Name="Date" Ascending="TRUE" /&gt;&#10;    &lt;/OrderBy&gt;&#10;  &lt;/Query&gt;&#10;&lt;/View&gt;&#10;</Property></Parameter></Parameters></Method></ObjectPaths></Request>')
+  } else if (type=="flow_normalized") {
+    body <- paste0('<Request xmlns="http://schemas.microsoft.com/sharepoint/clientquery/2009" SchemaVersion="15.0.0.0" LibraryVersion="15.0.0.0" ApplicationName="Javascript Library"><Actions><ObjectPath Id="89" ObjectPathId="88" /><ObjectPath Id="91" ObjectPathId="90" /><ObjectPath Id="93" ObjectPathId="92" /><ObjectPath Id="95" ObjectPathId="94" /><ObjectPath Id="97" ObjectPathId="96" /><Query Id="98" ObjectPathId="96"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="InternalName" SelectAll="true" /><Property Name="TypeAsString" SelectAll="true" /></Properties></ChildItemQuery></Query><ObjectPath Id="101" ObjectPathId="100" /><Query Id="102" ObjectPathId="100"><Query SelectAllProperties="false"><Properties /></Query><ChildItemQuery SelectAllProperties="false"><Properties><Property Name="CalculatedDate" SelectAll="true" /><Property Name="DailyLoad" SelectAll="true" /><Property Name="Date" SelectAll="true" /><Property Name="Note" SelectAll="true" /><Property Name="Plant" SelectAll="true" /></Properties></ChildItemQuery></Query></Actions><ObjectPaths><StaticProperty Id="88" TypeId="{3747adcd-a3c3-41b9-bfab-4a64dd2f1e0a}" Name="Current" /><Property Id="90" ParentId="88" Name="Web" /><Property Id="92" ParentId="90" Name="Lists" /><Method Id="94" ParentId="92" Name="GetById"><Parameters><Parameter Type="String">5a8cb96f-9e2f-49f2-b863-65de98c03b33</Parameter></Parameters></Method><Property Id="96" ParentId="94" Name="Fields" /><Method Id="100" ParentId="94" Name="GetItems"><Parameters><Parameter TypeId="{3d248d7b-fc86-40a3-aa97-02a75d69fb8a}"><Property Name="DatesInUtc" Type="Boolean">true</Property><Property Name="FolderServerRelativeUrl" Type="Null" /><Property Name="ListItemCollectionPosition" Type="Null" /><Property Name="ViewXml" Type="String">&lt;View&gt;&#10;  &lt;ViewFields&gt;&#10;    &lt;FieldRef Name="LinkTitle"/&gt;&#10;    &lt;FieldRef Name="Plant"/&gt;&#10;    &lt;FieldRef Name="Date"/&gt;&#10;    &lt;FieldRef Name="Note"/&gt;&#10;    &lt;FieldRef Name="CalculatedDate"/&gt;&#10;    &lt;FieldRef Name="DailyLoad"/&gt;&#10;  &lt;/ViewFields&gt;&#10;  &lt;RowLimit Paged="TRUE"&gt;1000&lt;/RowLimit&gt;&#10;  &lt;Query&gt;&#10;    &lt;Where&gt;&lt;Eq&gt;        &lt;FieldRef Name="Plant" /&gt;        &lt;Value Type="text"&gt;',plant,'&lt;/Value&gt;    &lt;/Eq&gt;&lt;/Where&gt;&#10;    &lt;OrderBy&gt;&#10;      &lt;FieldRef Name="Date" Ascending="TRUE"/&gt;&#10;    &lt;/OrderBy&gt;&#10;  &lt;/Query&gt;&#10;&lt;/View&gt;&#10;</Property></Parameter></Parameters></Method></ObjectPaths></Request>')
+  } else {
+    stop("unknown type")
+  }
+  body
 }
 
-get_data_for_plant <- function(plant){
+get_data_for_plant_and_type <- function(plant,type="concentration"){
   url <- "http://www.metrovancouver.org/services/liquid-waste/environmental-management/covid-19-wastewater/_vti_bin/client.svc/ProcessQuery"
   
-  r<-httr::POST(url,body=body_for_plant(plant),
+  r<-httr::POST(url,body=body_for_plant(plant,type),
                 httr::add_headers("Content-Type"="text/xml",
                                   "Accept"= "*/*",
                                   "Accept-Encoding"= "gzip, deflate",
@@ -200,20 +208,33 @@ get_data_for_plant <- function(plant){
                 httr::set_cookies("SPUsageId"="3332b361-25e6-4386-9dbc-eacf5c2212b5"))
   c<-httr::content(r)
   
-  headers<- c("CalculatedDate","Plant","Value")
-  c[[17]][["_Child_Items_"]] %>% 
+  headers<- c("CalculatedDate","Plant","Value","DailyLoad")
+  d<-c[[17]][["_Child_Items_"]] %>% 
     lapply(function(e){
       #as_tibble(e[headers])
       v<-e$Value
       if (is.null(v)) v <- NA
+      v2<-e$DailyLoad
+      if (is.null(v2)) v2 <- NA
       tibble(Date=gsub("\\/Date\\(|\\)\\/","",e$Date),
              CalculatedDate=e$CalculatedDate,
              Plant=e$Plant,
              Version=e$`_ObjectVersion_`,
-             Value=v)
+             Value=v,
+             DailyLoad=v2)
       }) %>%
     bind_rows() %>%
     mutate(DateTime=as.POSIXct(as.numeric(Date)/1000, 
                                origin="1970-01-01", tz="America/Vancouver")) %>%
-    mutate(Date=as.Date(CalculatedDate,format="%Y/%m/%d")) 
+    mutate(Date=as.Date(CalculatedDate,format="%Y/%m/%d"))
+  d
+}
+
+get_data_for_plant <- function(plant){
+  d1<-get_data_for_plant_and_type(plant,"concentration")
+  d2<-get_data_for_plant_and_type(plant,"flow_normalized")
+  
+  d<-d1 %>% select(-DailyLoad) %>%
+    left_join(d2 %>% select(Date,DailyLoad),by="Date")
+  d
 }

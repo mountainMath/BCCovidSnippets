@@ -418,7 +418,8 @@ plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest
 wastewater_data <- plants %>% 
   lapply(get_data_for_plant) %>%
   bind_rows() %>%
-  complete(Date=as.Date(c("2021-12-25","2020-12-25")),Plant,Version)
+  complete(Date=as.Date(c("2021-12-25","2020-12-25")),Plant,Version) %>%
+  rename(Concentration=Value,`Flow adjusted`=DailyLoad) 
 
 bc_cases <- CanCovidData::get_british_columbia_hr_case_data() %>%
   select(Date, HA=`Health Authority`,HR=`Health Region`,Cases) %>%
@@ -435,7 +436,9 @@ joint_data_for <- function(HRs, WPs,label=NULL){
     group_by(Date) %>%
     mutate(weight=weight/sum(weight)) %>%
     #filter(!(Plant%in% c("Northwest Langley","Annacis Island") & weight==1)) %>%
-    summarise(Wastewater=sum(Value*weight),.groups="drop")
+    summarise(Concentration=sum(Concentration*weight),
+              `Flow adjusted`=sum(`Flow adjusted`*weight),
+              .groups="drop")
   cs <- bc_cases %>% 
     filter(HR %in% HRs) %>%
     group_by(Date) %>%
@@ -475,16 +478,16 @@ beginning_date <- as.Date("2020-10-01")
 change_methods_date <- as.Date("2021-01-01")
 change_methods_end_date <- as.Date("2021-12-15")
 
-wastewater_colours<- setNames(c(sanzo::duos$c085,"darkgrey"),c("Cases","Wastewater","Rainfall"))
+wastewater_colours<- setNames(c(sanzo::trios$c157,"darkgrey"),c("Cases","Concentration","Flow adjusted","Rainfall"))
 
 pd <- plot_data %>%
   group_by(region)%>%
   arrange(Date) %>%
   mutate(Cases=Trend) %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
-  pivot_longer(c("Cases","Wastewater")) %>%
+  pivot_longer(c("Cases","Concentration","Flow adjusted")) %>%
   bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
-  mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall") %>% rev)) %>%
+  mutate(name=factor(name,levels=c("Cases","Concentration","Flow adjusted","Rainfall") %>% rev)) %>%
   group_by(name,region) %>%
   filter(Date>=beginning_date) %>%
   left_join((.) %>% filter(Date>=change_methods_date,Date<=change_methods_end_date) %>%
@@ -493,7 +496,7 @@ pd <- plot_data %>%
   mutate(s=value/mean_value)
 
 pd %>% 
-  filter(name!="Rainfall") %>%
+  #filter(name!="Rainfall") %>%
   #filter(!is.na(s)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
@@ -524,7 +527,7 @@ pd %>% filter(Date>=as.Date("2021-12-01")) %>%
   geom_rect(data=as_tibble(1),xmin=change_methods_end_date,xmax=Inf,ymin=-Inf,ymax=Inf,
             fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
   geom_line() +
-  geom_point(shape=21,data=~filter(.,name=="Wastewater")) +
+  geom_point(shape=21,data=~filter(.,name %in% c("Concentration","Flow adjusted"))) +
   facet_wrap(~region) +
   theme_bw() +
   scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$name)))]) +
@@ -544,10 +547,10 @@ plot_data %>%
   arrange(Date) %>%
   mutate(Cases=Trend) %>%
   #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
-  pivot_longer(c("Cases","Wastewater")) %>%
+  pivot_longer(c("Cases","Concentration","Flow adjusted")) %>%
   group_by(name,region) %>%
   bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
-  mutate(name=factor(name,levels=c("Cases","Wastewater","Rainfall"))) %>%
+  mutate(name=factor(name,levels=c("Cases","Concentration","Flow adjusted","Rainfall"))) %>%
   filter(Date>=change_methods_date) %>%
   mutate(s=value/mean(value,na.rm=TRUE)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
