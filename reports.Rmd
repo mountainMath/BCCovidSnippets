@@ -345,6 +345,41 @@ ggplot(aes(x=Date,y=value,colour=name)) +
 ```
 
 
+```{r hospital-admissions}
+admissions <- read_csv("https://mountainmath.ca/bc_total_hospitalizations.csv") 
+plot_data<-admissions %>%
+  #bind_rows(new_data) %>%
+  group_by(HA) %>%
+  mutate(change=total_hospitalized-lag(total_hospitalized,order_by = ScrapeDate)) %>%
+  filter(!is.na(change))
+
+
+
+plot_data %>% 
+  filter(ScrapeDate %in% ((.) %>%filter(HA=="BC",change>0) %>% pull(ScrapeDate))) %>%
+  mutate(lastDate=lag(ScrapeDate,order_by = ScrapeDate)) %>%
+  mutate(diff=difftime(ScrapeDate,lastDate,units = "day") %>% as.integer) %>%
+  mutate(Date=ScrapeDate,
+         estimate=change/diff) %>%
+  group_by(HA) %>%
+  complete(Date=seq(min(ScrapeDate),max(ScrapeDate),by="day")) %>%
+  arrange(Date) %>%
+  fill(estimate,.direction = "up") %>%
+  select(HA,Date,change,estimate) %>%
+  ungroup %>%
+ggplot(aes(x=Date,y=estimate,fill=HA)) +
+  #scale_y_continuous(trans="log") +
+  geom_bar(stat="identity") +
+  geom_smooth(se=FALSE,span=0.3,colour="black") +
+  scale_fill_discrete(guide="none")  +
+  facet_wrap("HA",scales="free_y") +
+  labs(y="Hospital admissions") +
+  labs(title="Hospital admissions",
+       caption="Scraped from BCCDC Dashboard",x=NULL,y="Number of daily hospitalizations")
+```
+
+
+
 
 ```{r hr-trend-recent}
 pop_data <- read_csv(here::here("data/hr_pop.csv")) %>%

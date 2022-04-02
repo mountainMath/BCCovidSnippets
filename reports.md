@@ -1,13 +1,15 @@
 Images for reports
 ================
 Jens von Bergmann
-Last updated at 01 April, 2022 - 18:42
+Last updated at 01 April, 2022 - 21:30
 
 <img src="reports_files/figure-gfm/bc-overview-1.png" width="1200" />
 
 <img src="reports_files/figure-gfm/bc-hospitalizations-1.png" width="1050" />
 
 <img src="reports_files/figure-gfm/icu-share-1.png" width="1050" />
+
+<img src="reports_files/figure-gfm/hospital-admissions-1.png" width="1050" />
 
 <img src="reports_files/figure-gfm/hr-trend-recent-1.png" width="1050" />
 
