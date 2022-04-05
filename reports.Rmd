@@ -557,10 +557,6 @@ pd %>% filter(Date>=as.Date("2021-12-01")) %>%
   #filter(!is.na(s)) %>%
   ggplot(aes(x=Date,y=s,colour=name)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
-  geom_rect(data=as_tibble(1),xmin=-Inf,xmax=change_methods_date,ymin=-Inf,ymax=Inf,
-            fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
-  geom_rect(data=as_tibble(1),xmin=change_methods_end_date,xmax=Inf,ymin=-Inf,ymax=Inf,
-            fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
   geom_line() +
   geom_point(shape=21,data=~filter(.,name %in% c("Concentration","Flow adjusted"))) +
   facet_wrap(~region) +
