@@ -450,11 +450,22 @@ g + scale_y_continuous(trans="log", breaks=2^seq(-5,10)) +
 ```{r wastewater-covid}
 plants <- c("Annacis Island","Iona Island","Lions Gate","Lulu Island","Northwest Langley")
 
+phac_wastewater <- read_csv("https://health-infobase.canada.ca/src/data/covidLive/wastewater/covid19-wastewater.csv") |>
+  filter(region=="Vancouver") |>
+  mutate(Plant=gsub("Vancouver ","",Location),measure="PHAC") |>
+  select(Date,Plant,measure,value=viral_load) 
+
 wastewater_data <- plants %>% 
   lapply(get_data_for_plant) %>%
   bind_rows() %>%
   complete(Date=as.Date(c("2021-12-25","2020-12-25")),Plant,Version) %>%
-  rename(Concentration=Value,`Flow adjusted`=DailyLoad) 
+  rename(Concentration=Value,`Flow adjusted`=DailyLoad) |>
+  pivot_longer(c("Concentration","Flow adjusted"),names_to="measure",values_to = "value") |>
+  select(Date,Plant,measure,value) |>
+  bind_rows(phac_wastewater) |>
+  filter(!is.na(value))
+
+
 
 bc_cases <- CanCovidData::get_british_columbia_hr_case_data() %>%
   select(Date, HA=`Health Authority`,HR=`Health Region`,Cases) %>%
@@ -468,19 +479,18 @@ joint_data_for <- function(HRs, WPs,label=NULL){
   wd<-wastewater_data %>%
     filter(Plant %in% names(WPs)) %>%
     mutate(weight=WPs[Plant]) %>%
-    group_by(Date) %>%
+    group_by(Date,measure) %>%
     mutate(weight=weight/sum(weight)) %>%
     #filter(!(Plant%in% c("Northwest Langley","Annacis Island") & weight==1)) %>%
-    summarise(Concentration=sum(Concentration*weight),
-              `Flow adjusted`=sum(`Flow adjusted`*weight),
-              .groups="drop")
+    summarise(value=sum(value*weight), .groups="drop")
   cs <- bc_cases %>% 
     filter(HR %in% HRs) %>%
     group_by(Date) %>%
     summarize(Cases=sum(Cases),.groups="drop") %>%
-    mutate(Trend=add_stl_trend_m(Cases+1)$trend-1 %>%  pmax(0))
+    mutate(Trend=add_stl_trend_m(Cases+1)$trend-1 %>%  pmax(0)) |>
+    pivot_longer(c("Cases","Trend"),names_to = "measure",values_to = "value")
   
-  left_join(wd,cs,by="Date") %>%
+  bind_rows(wd,cs) %>%
     mutate(region=label)
 }
 
@@ -513,27 +523,27 @@ beginning_date <- as.Date("2020-10-01")
 change_methods_date <- as.Date("2021-01-01")
 change_methods_end_date <- as.Date("2021-12-15")
 
-wastewater_colours<- setNames(c(sanzo::trios$c157,"darkgrey"),c("Cases","Concentration","Flow adjusted","Rainfall"))
+
+
+wastewater_colours<- setNames(c(MetBrewer::met.brewer("Egypt",4),"darkgrey"),
+                              c("Cases","Concentration","Flow adjusted","PHAC","Rainfall"))
 
 pd <- plot_data %>%
-  group_by(region)%>%
-  arrange(Date) %>%
-  mutate(Cases=Trend) %>%
-  #mutate(Cases=zoo::rollmean(Cases,7,na.pad = TRUE,align = "center")) %>%
-  pivot_longer(c("Cases","Concentration","Flow adjusted")) %>%
-  bind_rows(weather_data %>% mutate(name="Rainfall")) %>%
-  mutate(name=factor(name,levels=c("Cases","Concentration","Flow adjusted","Rainfall") %>% rev)) %>%
-  group_by(name,region) %>%
+  filter(measure!="Cases") |>
+  mutate(measure=recode(measure,"Trend"="Cases")) |>
+  bind_rows(weather_data %>% mutate(measure="Rainfall")) %>%
+  mutate(measure=factor(measure,levels=c("Cases","Concentration","Flow adjusted","PHAC","Rainfall") %>% rev)) %>%
+  group_by(measure,region) %>%
   filter(Date>=beginning_date) %>%
   left_join((.) %>% filter(Date>=change_methods_date,Date<=change_methods_end_date) %>%
-              group_by(name,region) %>%
-              summarise(mean_value=mean(value,na.rm=TRUE)),by=c("name","region")) %>%
+              group_by(measure,region) %>%
+              summarise(mean_value=mean(value,na.rm=TRUE)),by=c("measure","region")) %>%
   mutate(s=value/mean_value)
 
 pd %>% 
   #filter(name!="Rainfall") %>%
   #filter(!is.na(s)) %>%
-  ggplot(aes(x=Date,y=s,colour=name)) +
+  ggplot(aes(x=Date,y=s,colour=measure)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
   geom_rect(data=as_tibble(1),xmin=-Inf,xmax=change_methods_date,ymin=-Inf,ymax=Inf,
             fill="grey",colour=NA,inherit.aes = FALSE,alpha=0.5) +
@@ -543,7 +553,7 @@ pd %>%
   #geom_point(shape=21,data=~filter(.,name=="Wastewater")) +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$name)))]) +
+  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$measure)))]) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
@@ -555,13 +565,13 @@ pd %>%
 ```{r wastewater-covid-zoomed}
 pd %>% filter(Date>=as.Date("2021-12-01")) %>%
   #filter(!is.na(s)) %>%
-  ggplot(aes(x=Date,y=s,colour=name)) +
+  ggplot(aes(x=Date,y=s,colour=measure)) +
   geom_vline(xintercept = change_methods_date,linetype="dotted") +
   geom_line() +
-  geom_point(shape=21,data=~filter(.,name %in% c("Concentration","Flow adjusted"))) +
+  geom_point(shape=21,data=~filter(.,measure %in% c("Concentration","Flow adjusted","PHAC"))) +
   facet_wrap(~region) +
   theme_bw() +
-  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$name)))]) +
+  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$measure)))]) +
   scale_y_continuous() +
   theme(legend.position = "bottom",
         axis.text.y = element_blank(),
@@ -569,7 +579,6 @@ pd %>% filter(Date>=as.Date("2021-12-01")) %>%
   labs(title="Recent wastewater COVID concentration vs case counts",
        x=NULL,y=NULL,colour=NULL)
 ```
-
 
 
 ```{r wastewater-covid-2, eval=FALSE, include=FALSE}

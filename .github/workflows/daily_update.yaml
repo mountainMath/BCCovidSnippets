@@ -33,6 +33,7 @@ jobs:
           install.packages("dplyr")
           install.packages("roll")
           install.packages("readr")
+          install.packages("MetBrewer")
           install.packages("ggrepel")
           install.packages("ggtext")
           install.packages("rmarkdown")
