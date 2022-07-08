@@ -462,8 +462,8 @@ wastewater_data <- plants %>%
   rename(Concentration=Value,`Flow adjusted`=DailyLoad) |>
   pivot_longer(c("Concentration","Flow adjusted"),names_to="measure",values_to = "value") |>
   select(Date,Plant,measure,value) |>
-  bind_rows(phac_wastewater) |>
-  filter(!is.na(value))
+  bind_rows(phac_wastewater) #|>
+  #filter(!is.na(value))
 
 
 
