@@ -61,9 +61,6 @@ jobs:
       - name: Render BC Trends
         run: |
           Rscript -e 'rmarkdown::render("bc_covid_trends.Rmd")'
-#      - name: Render Two COVID Canadas
-#        run: |
-#          Rscript -e 'rmarkdown::render("two_covid_canadas.Rmd")'
       - name: Render Vaccination Tracker
         run: |
           Rscript -e 'rmarkdown::render("vaccination_tracker.Rmd")'
@@ -76,7 +73,6 @@ jobs:
           git config --local user.name "GitHub Actions"
           git commit -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
           git commit bc_covid_trends.md  bc_covid_trends_files -m 'Re-build bc_covid_trends.Rmd' || echo "No changes to commit"
-#          git commit two_covid_canadas.md two_covid_canadas_files -m 'Re-build two_covid_canadas.Rmd' || echo "No changes to commit"
           git commit open_table.md open_table_files -m 'Re-build open_table.Rmd' || echo "No changes to commit"
           git commit reports.md reports_files -m 'Re-build reports.Rmd' || echo "No changes to commit"
           git commit vaccination_tracker.md vaccination_tracker_files -m 'Re-build vaccination_tracker.Rmd' || echo "No changes to commit"
