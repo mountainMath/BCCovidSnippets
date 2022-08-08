@@ -1,6 +1,6 @@
 Vaccination Tracker
 ================
 Jens von Bergmann
-Last updated at 07 August, 2022 - 16:48
+Last updated at 07 August, 2022 - 18:12
 
 Vaccination tracker is no longer functional.
