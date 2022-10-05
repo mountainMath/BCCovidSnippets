@@ -580,6 +580,24 @@ pd %>% filter(Date>=as.Date("2021-12-01")) %>%
        x=NULL,y=NULL,colour=NULL)
 ```
 
+```{r wastewater-covid-zoomed-log}
+pd %>% filter(Date>=as.Date("2021-12-01")) %>%
+  filter(measure!="Rainfall") |>
+  #filter(!is.na(s)) %>%
+  ggplot(aes(x=Date,y=s,colour=measure)) +
+  geom_vline(xintercept = change_methods_date,linetype="dotted") +
+  geom_line() +
+  geom_point(shape=21,data=~filter(.,measure %in% c("Concentration","Flow adjusted","PHAC"))) +
+  facet_wrap(~region) +
+  theme_bw() +
+  scale_colour_manual(values=wastewater_colours[(unique(as.character(pd$measure)))]) +
+  scale_y_continuous(trans="log") +
+  theme(legend.position = "bottom",
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  labs(title="Recent wastewater COVID concentration vs case counts",
+       x=NULL,y="(log scale)",colour=NULL)
+```
 
 ```{r wastewater-covid-2, eval=FALSE, include=FALSE}
 plot_data %>%
