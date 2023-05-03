@@ -1,7 +1,7 @@
 BC Covid Trends
 ================
 Jens von Bergmann
-Last updated at 21 April, 2023 - 18:06
+Last updated at 02 May, 2023 - 23:10
 
 This notebook is intended to give a daily overview over BC Covid Trends.
 It utilizes a (multiplicative) STL decomposition to esimate a seasonally
@@ -23,23 +23,23 @@ easier to spot trends.
 Real development in case data differs from pure exponential growth in
 three important ways:
 
-  - Change in NPI via change regulation or change in behaviour impacts
-    the trajectory. In BC behaviour has been generally fairly constant
-    over longer time periods, with changes initiated by changes in
-    public health regulations. These changes in increase or decrease the
-    growth rate. (Growth can be negative or positive.)
-  - Increasing vaccinations lead to sub-exponential growth, on a log
-    plot the case numbers will bend downward.
-  - Changing mix in COVID variants, this will lead to faster than
-    exponential growth. When some variants are more transmissibly than
-    others and thus incease their share among the cases, the effective
-    rate of growth of cases will accelerate and the cases will bend
-    upwards on a log plot. This is because each variant should be
-    modelled as a separate exponential process, and the sum of
-    exponential processes is not an exponential process. In the long
-    run, the more transmissible variant will take over and the growth
-    rate will follow a simple exponential growth model with growth rate
-    given by the more transmissible variant.
+- Change in NPI via change regulation or change in behaviour impacts the
+  trajectory. In BC behaviour has been generally fairly constant over
+  longer time periods, with changes initiated by changes in public
+  health regulations. These changes in increase or decrease the growth
+  rate. (Growth can be negative or positive.)
+- Increasing vaccinations lead to sub-exponential growth, on a log plot
+  the case numbers will bend downward.
+- Changing mix in COVID variants, this will lead to faster than
+  exponential growth. When some variants are more transmissibly than
+  others and thus incease their share among the cases, the effective
+  rate of growth of cases will accelerate and the cases will bend
+  upwards on a log plot. This is because each variant should be modelled
+  as a separate exponential process, and the sum of exponential
+  processes is not an exponential process. In the long run, the more
+  transmissible variant will take over and the growth rate will follow a
+  simple exponential growth model with growth rate given by the more
+  transmissible variant.
 
 <img src="bc_covid_trends_files/figure-gfm/bc-trend-log-1.png" width="1050" />
 
