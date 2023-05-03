@@ -28,7 +28,7 @@ jobs:
         with:
           use-public-rspm: true
       - uses: r-lib/actions/setup-pandoc@v2
-     - name: "[Custom block] [macOS] Install spatial libraries"
+      - name: "[Custom block] [macOS] Install spatial libraries"
         if: runner.os == 'macOS'
         run: |
           # conflicts with gfortran from r-lib/actions when linking gcc
